@@ -5,6 +5,7 @@ import './App.css';
 
 class App extends Component {
   state = {
+    originalsong: [],
     currentsong: [[176, 64, 0, 1]],
     midiEnabled: false,
     midiAccess: null,
@@ -19,7 +20,7 @@ class App extends Component {
     let timingInfo = new Date().valueOf()-800
     this.setState({
       pageLoaded: timingInfo
-    })
+    }, () => {this.requestMIDI()})
   }
 
   startChime = ( outputdevice ) => {
@@ -59,6 +60,10 @@ class App extends Component {
   getMIDIIO = (midiAccess) => {
     var inputs = midiAccess.inputs;
     var outputs = midiAccess.outputs;
+    // for (var output of outputs.values()) {
+    //   console.log(output);
+    // }
+    // ****Keyboard Select if time permits
     let outputdevice
     let inputdevice
     for (var output of outputs.values()) {
@@ -80,7 +85,8 @@ class App extends Component {
   recordSong = () => {
     this.setState({
       recording: true,
-      currentsong: [[176, 64, 0, 1]]
+      currentsong: [[176, 64, 0, 1]],
+      originalsong: []
     })
     const inputdevice = this.state.midiInput
     inputdevice.onmidimessage = (message) => {
@@ -118,9 +124,9 @@ class App extends Component {
     }, this.adjustStartTime)
   }
 
-  copyCurrentSong = () => {
+  getSongFromState = (arg) => {
     let adjustedSong = []
-    for (const note of this.state.currentsong) {
+    for (const note of arg) {
       let noteCopy = [...note]
       adjustedSong = [...adjustedSong, noteCopy]
     };
@@ -128,8 +134,8 @@ class App extends Component {
   }
 
   adjustStartTime = () => {
-    let adjustedSong = this.copyCurrentSong()
-    let adjustStartTimeBy = adjustedSong[1][3] - 1;
+    let adjustedSong = this.getSongFromState(this.state.currentsong)
+    let adjustStartTimeBy = adjustedSong[1][3] - 2;
     for (const note of adjustedSong) {
       note[3] = note[3] - adjustStartTimeBy;
     }
@@ -140,32 +146,91 @@ class App extends Component {
   }
 
   adjustPedalBug = () => {
-    let adjustedSong = this.copyCurrentSong()
+    let adjustedSong = this.getSongFromState(this.state.currentsong)
     for (const note of adjustedSong) {
       if (note[0] === 144 && note[1] === 64 && note[2] === 127) {
         note[0] = 176
       }
     }
     this.setState({
-      currentsong: adjustedSong
+      currentsong: adjustedSong,
+      originalsong: adjustedSong
+    })
+  }
+
+  resetSong = () => {
+    let resetSong = this.getSongFromState(this.state.originalsong)
+    this.setState({
+      currentsong: resetSong
+    })
+  }
+
+
+  makeLouder = () => {
+    let louderSong = this.getSongFromState(this.state.currentsong)
+    for (const note of louderSong) {
+      if (note[0] === 144) {
+        note[2] = Math.round(Math.sqrt(127) * Math.sqrt(note[2]))
+      }
+    }
+    this.setState({
+      currentsong: louderSong
+    })
+  }
+
+  makeSofter = () => {
+    let softerSong = this.getSongFromState(this.state.currentsong)
+    for (const note of softerSong) {
+      if (note[0] === 144) {
+        note[2] = Math.round(note[2] / 1.3)
+      }
+    }
+    this.setState({
+      currentsong: softerSong
+    })
+  }
+
+  changeTempo = (float) => {
+    let changedSong = this.getSongFromState(this.state.currentsong)
+    for (const event of changedSong) {
+        event[3] = Math.round(event[3] * float)
+    }
+    this.setState({
+      currentsong: changedSong
+    })
+  }
+
+  transposeSong = (arg) => {
+    let changedSong = this.getSongFromState(this.state.currentsong)
+    for (const note of changedSong) {
+      if (note[0] === 144) {
+        note[1] = note[1] + arg
+      }
+    }
+    this.setState({
+      currentsong: changedSong
     })
   }
 
   playSong = () => {
     if (this.state.playing === false) {
+      let theSong = this.getSongFromState(this.state.currentsong)
       this.setState({
         playing: true
-      })
-      const outputdevice = this.state.midiOutput
-      const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded
-      let theSong = this.copyCurrentSong()
+      }, () => {
+        const outputdevice = this.state.midiOutput
+        const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded
         for (const note of theSong) {
           outputdevice.send( [ note[0], note[1], note[2] ], msSinceLoad+note[3] );
         }
+      })
+      let theduration = theSong[theSong.length - 1][3];
+      window.setTimeout(() => {
+        this.setState({
+          playing: false
+        })
+      }, theduration)
     }
-    this.setState({
-      playing: false
-    })
   }
 
   onMIDIFailure = () => {
@@ -174,21 +239,22 @@ class App extends Component {
 
 
   render() {
-
+    let storage = "<p>{this.state.midiEnabled ?  'MIDI IS ON' : <button onClick={this.requestMIDI}>Turn On Midi</button>}</p>"
     return (
 
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
+          <h1 className="App-title">Welcome to Song Recorder</h1>
         </header>
-        <p>{this.state.midiEnabled ?  'MIDI IS ON' : <button onClick={this.requestMIDI}>Turn On Midi</button>}</p>
+
         <p>{this.state.midiEnabled ? <button onClick={this.startChime}>Play Chime</button> : '' }</p>
         <p>{this.state.midiEnabled ? (this.state.recording ? <button onClick={this.stopRecord}>STOP Record</button> : <button onClick={this.recordSong}>START Record</button>) : ''}</p>
         <p>{this.state.currentsong.length < 2 ? '' : <button onClick={this.playSong}>PLAY Song</button>}</p>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        <p>{this.state.currentsong.length < 2 ? '' : <span><button onClick={this.makeLouder}>MAKE LOUDER</button>      <button onClick={this.makeSofter}>Make softer</button></span>}</p>
+        <p>{this.state.currentsong.length < 2 ? '' : <span><button onClick={() => this.changeTempo(.77)}>Play Faster</button>      <button onClick={() => this.changeTempo(1.3)}>Play Slower</button></span>}</p>
+        <p>{this.state.currentsong.length < 2 ? '' : <span><button onClick={() => this.transposeSong(1)}>Transpose Up</button>      <button onClick={() => this.transposeSong(-1)}>Transpose Down</button></span>}</p>
+        <p>{this.state.currentsong.length < 2 ? '' : <button onClick={this.resetSong}>Undo All Changes</button>}</p>
       </div>
     );
   }
