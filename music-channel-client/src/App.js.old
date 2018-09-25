@@ -1,0 +1,156 @@
+import React, { Component } from 'react';
+import logo from './logo.svg';
+import './App.css';
+import WebMidi from '../node_modules/webmidi/webmidi.min';
+
+class App extends Component {
+  state = {
+    currentsong: 'nothing',
+    midiEnabled: false,
+    midiAccess: null,
+    midiInput: null,
+    midiOutput: null
+  }
+
+  startRecord = () => {
+    WebMidi.enable((err) => {
+      var currentsong = []
+      const midiin = WebMidi.getInputByName("USB2.0-MIDI Port 1");
+      midiin.addListener('noteon', "all",
+       (e) => {
+          let note = e.note.name + e.note.octave
+          let velo = e.velocity
+          let time = Math.round(e.timestamp)
+          let currentNoteOn = [note, velo, time]
+          console.log(currentNoteOn);
+        }
+      );
+      midiin.addListener('noteoff', "all",
+        (e) => {
+          let note = e.note.name + e.note.octave
+          let time = Math.round(e.timestamp)
+          let currentNoteOff = [note, time]
+          console.log(currentNoteOff);
+        }
+      );
+      // function passNoteToSong(onNote, offNote) {
+      //   console.log(onNote, offNote)
+      // }
+    })
+  }
+
+  passSongToState = (song) => {
+    this.setState({currentsong: [this.state.currentsong, song]})
+  }
+
+  // startPlay = () => {
+  //   console.log('startplay')
+  //   WebMidi.enable((err) => {
+  //     if (err) {
+  //         console.log("WebMidi could not be enabled.", err);
+  //       } else {
+  //         console.log("WebMidi enabled!");
+  //       }
+  //     console.log("in webmidi")
+  //     const midiout = WebMidi.getOutputByName("USB2.0-MIDI Port 1");
+  //     debugger;
+  //     midiout.playNote("Gb2", 1, {duration: 2000, velocity: 0.75}).stopNote("Gb2", 1, {time: 1200});
+  //   })
+  // }
+
+  startPlay = ( midiAccess, portID ) => {
+    var noteOnMessage = [0x90, 60, 0x7f];    // note on, middle C, full velocity
+    var output = midiAccess.outputs.get(portID);
+    output.send( noteOnMessage );  //omitting the timestamp means send immediately.
+    output.send( [0x80, 60, 0x40], window.performance.now() + 1000.0 ); // Inlined array creation- note off, middle C,
+                                                                        // release velocity = 64, timestamp = now + 1000ms.
+  }
+
+
+  requestMIDI = () => {
+    if (this.state.midiEnabled) {
+        console.log('MIDI already enabled!')
+        this.getMIDIIO(this.state.midiAccess)
+      } else {
+        console.log('MIDI not yet enabled. Enabling...')
+        navigator.requestMIDIAccess()
+        .then(this.onMIDISuccess, this.onMIDIFailure);
+      }
+    }
+
+  onMIDISuccess = (midiAccess) => {
+    console.log('MIDI enabled!')
+    this.setState({
+      midiEnabled: true,
+      midiAccess: midiAccess
+    }, () => {this.getMIDIIO(midiAccess)})
+  }
+
+  getMIDIIO = (midiAccess) => {
+    console.log(midiAccess)
+    var inputs = midiAccess.inputs;
+    // var outputs = midiAccess.outputs;
+    // for (var output of outputs.values()) {
+    //   if (output.name === 'USB2.0-MIDI Port 1') {
+    //     var outputdevice = output
+    //     outputdevice.send( [ 0x90, 0x45, 0x7f ] )
+    //   }
+    // }
+    for (var input of midiAccess.inputs.values()) {
+        if (input.name === 'USB2.0-MIDI Port 1') {
+          var inputdevice = input
+          console.log(inputdevice);
+          this.setState({
+            midiInput: inputdevice,
+          }, () => {inputdevice.onmidimessage = this.getMIDIMessage})
+        }
+    }
+  }
+
+  getMIDIMessage = (message) => {
+    switch (message.data[0]) {
+      case 144:
+        console.log('Note: ', message.data[1]);
+        console.log('Velocity: ', message.data[2]);
+        console.log('Timestamp: ', message.timeStamp)
+        break;
+      case 176:
+        console.log('SUSTAIN PEDAL');
+        console.log('Velocity: ', message.data[2]);
+        console.log('Timestamp: ', message.timeStamp)
+        break;
+      case 254:
+        break;
+      case 248:
+        break;
+      default:
+        console.log('Command: ', message.data[0]);
+        break;
+    }
+  }
+
+  onMIDIFailure = () => {
+      console.log('Could not access your MIDI devices.');
+  }
+
+
+  render() {
+
+    return (
+
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <h1 className="App-title">Welcome to React</h1>
+        </header>
+        {this.state.midiEnabled ?  'MIDI IS ON' : <button onClick={this.requestMIDI}>Turn On Midi</button>}
+        <p className="App-intro">
+          To get started, edit <code>src/App.js</code> and save to reload.
+        </p>
+        <p><a onClick={this.startRecord}>Record Me!</a></p><p><a onClick={this.startPlay}>Play Sample!</a></p>
+      </div>
+    );
+  }
+}
+
+export default App;
