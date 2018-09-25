@@ -73,32 +73,8 @@ class App extends Component {
     }
     this.setState({
       midiInput: inputdevice,
-      midiOutput: outputdevice,
+      midiOutput: outputdevice
     }, () => {this.startChime(outputdevice)})
-  }
-
-  logMIDIinputs = () => {
-    let inputdevice = this.state.midiInput
-    inputdevice.onmidimessage = (message) => {
-      switch (message.data[0]) {
-        case 144:
-          console.log('outputdevice.send( [', message.data[0], ', ', message.data[1], ', ', message.data[2],'], ', Math.round(message.timeStamp), ');');
-          break;
-        case 176:
-          console.log('SUSTAIN PEDAL');
-          console.log('Command: ', message.data[0]);
-          console.log('Velocity: ', message.data[2]);
-          console.log('Timestamp: ', Math.round(message.timeStamp))
-          break;
-        case 254:
-          break;
-        case 248:
-          break;
-        default:
-          console.log('Command: ', message.data[0]);
-          break;
-      }
-    }
   }
 
   recordSong = () => {
@@ -207,7 +183,6 @@ class App extends Component {
           <h1 className="App-title">Welcome to React</h1>
         </header>
         <p>{this.state.midiEnabled ?  'MIDI IS ON' : <button onClick={this.requestMIDI}>Turn On Midi</button>}</p>
-        <p>{this.state.midiEnabled ? <button onClick={this.logMIDIinputs}>Log MIDI Inputs </button> : '' }</p>
         <p>{this.state.midiEnabled ? <button onClick={this.startChime}>Play Chime</button> : '' }</p>
         <p>{this.state.midiEnabled ? (this.state.recording ? <button onClick={this.stopRecord}>STOP Record</button> : <button onClick={this.recordSong}>START Record</button>) : ''}</p>
         <p>{this.state.currentsong.length < 2 ? '' : <button onClick={this.playSong}>PLAY Song</button>}</p>
