@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { Divider, Pagination, Dimmer, Loader, Container, Grid } from 'semantic-ui-react'
+
 // import WebMidi from '../node_modules/webmidi/webmidi.min';
 
 class App extends Component {
   state = {
+    savedsongs: [],
     originalsong: [],
     currentsong: [[176, 64, 0, 1]],
+    songsaved: false,
     midiEnabled: false,
     midiAccess: null,
     midiInput: null,
@@ -17,25 +21,12 @@ class App extends Component {
   }
 
   componentDidMount() {
-    let timingInfo = new Date().valueOf()-800
-    this.setState({
-      pageLoaded: timingInfo
-    }, () => {this.requestMIDI()})
-  }
-
-  startChime = ( outputdevice ) => {
-    if (outputdevice.name === undefined) {
-      outputdevice = this.state.midiOutput
-    }
-    const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded
-    outputdevice.send( [ 0x90, 0x48, 0x50 ], msSinceLoad+0 );
-    outputdevice.send( [ 0x90, 0x4C, 0x50 ], msSinceLoad+101 );
-    outputdevice.send( [ 0x90, 0x4F, 0x50 ], msSinceLoad+201 );
-    outputdevice.send( [ 0x90, 0x54, 0x50 ], msSinceLoad+301 );
-    outputdevice.send( [ 0x90, 0x48, 0x00 ], msSinceLoad+600 );
-    outputdevice.send( [ 0x90, 0x4C, 0x00 ], msSinceLoad+601 );
-    outputdevice.send( [ 0x90, 0x4F, 0x00 ], msSinceLoad+602 );
-    outputdevice.send( [ 0x90, 0x54, 0x00 ], msSinceLoad+603 );
+    const timingInfo = new Date().valueOf()-800
+    window.setTimeout(() => {
+      this.setState({
+        pageLoaded: timingInfo
+      }, () => {this.requestMIDI()})
+    }, 1000)
   }
 
   requestMIDI = () => {
@@ -48,6 +39,10 @@ class App extends Component {
         .then(this.onMIDISuccess, this.onMIDIFailure);
       }
     }
+
+  onMIDIFailure = () => {
+      console.log('Could not access your MIDI devices.');
+  }
 
   onMIDISuccess = (midiAccess) => {
     console.log('MIDI enabled!')
@@ -80,6 +75,36 @@ class App extends Component {
       midiInput: inputdevice,
       midiOutput: outputdevice
     }, () => {this.startChime(outputdevice)})
+  }
+
+  startChime = ( outputdevice ) => {
+    if (outputdevice.name === undefined) {
+      outputdevice = this.state.midiOutput
+    }
+    const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded
+    outputdevice.send( [ 0x90, 0x2A, 0x70 ], msSinceLoad+100 );
+    outputdevice.send( [ 0x90, 0x31, 0x70 ], msSinceLoad+101 );
+    outputdevice.send( [ 0x90, 0x3A, 0x70 ], msSinceLoad+102 );
+    outputdevice.send( [ 0x90, 0x3D, 0x70 ], msSinceLoad+103 );
+    // outputdevice.send( [ 0x90, 0x30, 0x50 ], msSinceLoad+200 );
+    // outputdevice.send( [ 0x90, 0x34, 0x50 ], msSinceLoad+250 );
+    // outputdevice.send( [ 0x90, 0x37, 0x50 ], msSinceLoad+300 );
+    // outputdevice.send( [ 0x90, 0x3C, 0x50 ], msSinceLoad+350 );
+    // outputdevice.send( [ 0x90, 0x40, 0x50 ], msSinceLoad+400 );
+    // outputdevice.send( [ 0x90, 0x43, 0x50 ], msSinceLoad+450 );
+    // outputdevice.send( [ 0x90, 0x43, 0x00 ], msSinceLoad+600 );
+    // outputdevice.send( [ 0x90, 0x4C, 0x00 ], msSinceLoad+601 );
+    // outputdevice.send( [ 0x90, 0x4F, 0x00 ], msSinceLoad+602 );
+    // outputdevice.send( [ 0x90, 0x54, 0x00 ], msSinceLoad+603 );
+
+    // outputdevice.send( [ 0x90, 0x48, 0x50 ], msSinceLoad+0 );
+    // outputdevice.send( [ 0x90, 0x4C, 0x50 ], msSinceLoad+101 );
+    // outputdevice.send( [ 0x90, 0x4F, 0x50 ], msSinceLoad+201 );
+    // outputdevice.send( [ 0x90, 0x54, 0x50 ], msSinceLoad+301 );
+    // outputdevice.send( [ 0x90, 0x48, 0x00 ], msSinceLoad+600 );
+    // outputdevice.send( [ 0x90, 0x4C, 0x00 ], msSinceLoad+601 );
+    // outputdevice.send( [ 0x90, 0x4F, 0x00 ], msSinceLoad+602 );
+    // outputdevice.send( [ 0x90, 0x54, 0x00 ], msSinceLoad+603 );
   }
 
   recordSong = () => {
@@ -233,13 +258,39 @@ class App extends Component {
     }
   }
 
-  onMIDIFailure = () => {
-      console.log('Could not access your MIDI devices.');
+  saveCurrentSong = () => {
+    let songToSave = this.getSongFromState(this.state.currentsong)
+    let songObj = {}
+    songObj["title"] = "Song Title"
+    songObj["user_id"] = "1"
+    songObj["songdata"] = songToSave
+    const songJSON = JSON.stringify(songObj)
+    this.setState({
+      songsaved: true
+    })
+    fetch('http://localhost:3001/songs/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: songJSON
+    }).then(res => res.json())
+    .then(console.log())
+  }
+
+  fetchSongList = () => {
+    fetch('http://localhost:3001/songs/')
+    .then(res => res.json())
+    .then(this.renderSongList)
+  }
+
+  renderSongList = (resData) => {
+    this.setState({
+      savedsongs: resData
+    })
   }
 
 
   render() {
-    let storage = "<p>{this.state.midiEnabled ?  'MIDI IS ON' : <button onClick={this.requestMIDI}>Turn On Midi</button>}</p>"
+
     return (
 
       <div className="App">
@@ -249,12 +300,14 @@ class App extends Component {
         </header>
 
         <p>{this.state.midiEnabled ? <button onClick={this.startChime}>Play Chime</button> : '' }</p>
+        <p>{this.state.midiEnabled ? <button onClick={this.fetchSongList}>See Saved Songs</button> : '' }</p>
         <p>{this.state.midiEnabled ? (this.state.recording ? <button onClick={this.stopRecord}>STOP Record</button> : <button onClick={this.recordSong}>START Record</button>) : ''}</p>
-        <p>{this.state.currentsong.length < 2 ? '' : <button onClick={this.playSong}>PLAY Song</button>}</p>
+        <p>{this.state.currentsong.length < 2 ? '' : (this.state.playing === true ? <button disabled>Song Is Playing</button> : <button onClick={this.playSong}>PLAY Song</button>)}</p>
         <p>{this.state.currentsong.length < 2 ? '' : <span><button onClick={this.makeLouder}>MAKE LOUDER</button>      <button onClick={this.makeSofter}>Make softer</button></span>}</p>
         <p>{this.state.currentsong.length < 2 ? '' : <span><button onClick={() => this.changeTempo(.77)}>Play Faster</button>      <button onClick={() => this.changeTempo(1.3)}>Play Slower</button></span>}</p>
         <p>{this.state.currentsong.length < 2 ? '' : <span><button onClick={() => this.transposeSong(1)}>Transpose Up</button>      <button onClick={() => this.transposeSong(-1)}>Transpose Down</button></span>}</p>
         <p>{this.state.currentsong.length < 2 ? '' : <button onClick={this.resetSong}>Undo All Changes</button>}</p>
+        <p>{this.state.currentsong.length < 2 ? '' : <button onClick={this.saveCurrentSong}>Save As New Song</button>}</p>
       </div>
     );
   }
