@@ -1,22 +1,25 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import { Divider, Pagination, Dimmer, Loader, Container, Grid } from 'semantic-ui-react'
-
+import SongSelector from "./SongSelector";
+import SongController from "./SongController";
+// import { Button, Confirm } from 'semantic-ui-react'
 // import WebMidi from '../node_modules/webmidi/webmidi.min';
 
 class App extends Component {
   state = {
     savedsongs: [],
-    originalsong: [],
+    currentSongTitle: null,
+    currentSongID: null,
+    currentsongbackup: [],
     currentsong: [[176, 64, 0, 1]],
-    songsaved: false,
+    isSongSaved: null,
     midiEnabled: false,
     midiAccess: null,
     midiInput: null,
     midiOutput: null,
-    recording: false,
-    playing: false,
+    isRecording: false,
+    isPlaying: false,
     pageLoaded: 0
   }
 
@@ -82,40 +85,25 @@ class App extends Component {
       outputdevice = this.state.midiOutput
     }
     const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded
-    outputdevice.send( [ 0x90, 0x2A, 0x70 ], msSinceLoad+100 );
-    outputdevice.send( [ 0x90, 0x31, 0x70 ], msSinceLoad+101 );
-    outputdevice.send( [ 0x90, 0x3A, 0x70 ], msSinceLoad+102 );
-    outputdevice.send( [ 0x90, 0x3D, 0x70 ], msSinceLoad+103 );
-    // outputdevice.send( [ 0x90, 0x30, 0x50 ], msSinceLoad+200 );
-    // outputdevice.send( [ 0x90, 0x34, 0x50 ], msSinceLoad+250 );
-    // outputdevice.send( [ 0x90, 0x37, 0x50 ], msSinceLoad+300 );
-    // outputdevice.send( [ 0x90, 0x3C, 0x50 ], msSinceLoad+350 );
-    // outputdevice.send( [ 0x90, 0x40, 0x50 ], msSinceLoad+400 );
-    // outputdevice.send( [ 0x90, 0x43, 0x50 ], msSinceLoad+450 );
-    // outputdevice.send( [ 0x90, 0x43, 0x00 ], msSinceLoad+600 );
-    // outputdevice.send( [ 0x90, 0x4C, 0x00 ], msSinceLoad+601 );
-    // outputdevice.send( [ 0x90, 0x4F, 0x00 ], msSinceLoad+602 );
-    // outputdevice.send( [ 0x90, 0x54, 0x00 ], msSinceLoad+603 );
-
-    // outputdevice.send( [ 0x90, 0x48, 0x50 ], msSinceLoad+0 );
-    // outputdevice.send( [ 0x90, 0x4C, 0x50 ], msSinceLoad+101 );
-    // outputdevice.send( [ 0x90, 0x4F, 0x50 ], msSinceLoad+201 );
-    // outputdevice.send( [ 0x90, 0x54, 0x50 ], msSinceLoad+301 );
-    // outputdevice.send( [ 0x90, 0x48, 0x00 ], msSinceLoad+600 );
-    // outputdevice.send( [ 0x90, 0x4C, 0x00 ], msSinceLoad+601 );
-    // outputdevice.send( [ 0x90, 0x4F, 0x00 ], msSinceLoad+602 );
-    // outputdevice.send( [ 0x90, 0x54, 0x00 ], msSinceLoad+603 );
+    outputdevice.send( [ 0x90, 0x2A, 0x70 ], msSinceLoad+500 );
+    outputdevice.send( [ 0x90, 0x31, 0x70 ], msSinceLoad+501 );
+    outputdevice.send( [ 0x90, 0x3A, 0x70 ], msSinceLoad+502 );
+    outputdevice.send( [ 0x90, 0x3D, 0x70 ], msSinceLoad+503 );
+    outputdevice.send( [ 0x90, 0x46, 0x70 ], msSinceLoad+504 );
   }
 
   recordSong = () => {
     this.setState({
-      recording: true,
+      isRecording: true,
+      isSongSaved: false,
       currentsong: [[176, 64, 0, 1]],
-      originalsong: []
+      currentsongbackup: [],
+      currentSongID: null,
+      currentSongTitle: null
     })
     const inputdevice = this.state.midiInput
     inputdevice.onmidimessage = (message) => {
-      if (this.state.recording) {
+      if (this.state.isRecording) {
         switch (message.data[0]) {
           case 144:
             let noteArray = [144, message.data[1], message.data[2], Math.round(message.timeStamp)]
@@ -145,7 +133,7 @@ class App extends Component {
 
   stopRecord = () => {
     this.setState({
-      recording: false,
+      isRecording: false,
     }, this.adjustStartTime)
   }
 
@@ -179,12 +167,12 @@ class App extends Component {
     }
     this.setState({
       currentsong: adjustedSong,
-      originalsong: adjustedSong
+      currentsongbackup: adjustedSong
     })
   }
 
   resetSong = () => {
-    let resetSong = this.getSongFromState(this.state.originalsong)
+    let resetSong = this.getSongFromState(this.state.currentsongbackup)
     this.setState({
       currentsong: resetSong
     })
@@ -238,13 +226,13 @@ class App extends Component {
   }
 
   playSong = () => {
-    if (this.state.playing === false) {
+    if (this.state.isPlaying === false) {
       let theSong = this.getSongFromState(this.state.currentsong)
       this.setState({
-        playing: true
+        isPlaying: true
       }, () => {
         const outputdevice = this.state.midiOutput
-        const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded
+        const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 100
         for (const note of theSong) {
           outputdevice.send( [ note[0], note[1], note[2] ], msSinceLoad+note[3] );
         }
@@ -252,7 +240,7 @@ class App extends Component {
       let theduration = theSong[theSong.length - 1][3];
       window.setTimeout(() => {
         this.setState({
-          playing: false
+          isPlaying: false
         })
       }, theduration)
     }
@@ -266,7 +254,7 @@ class App extends Component {
     songObj["songdata"] = songToSave
     const songJSON = JSON.stringify(songObj)
     this.setState({
-      songsaved: true
+      isSongSaved: true
     })
     fetch('http://localhost:3001/songs/', {
       method: 'POST',
@@ -288,6 +276,19 @@ class App extends Component {
     })
   }
 
+  handleSelect = (e) => {
+
+    const selectedSong = this.state.savedsongs.find(song => song.id === parseInt(e.target.id))
+    console.log(selectedSong);
+    this.setState({
+      currentSongID: selectedSong.id,
+      currentSongTitle: selectedSong.title
+    },
+      this.setCurrentSong)
+  }
+
+
+
 
   render() {
 
@@ -301,13 +302,22 @@ class App extends Component {
 
         <p>{this.state.midiEnabled ? <button onClick={this.startChime}>Play Chime</button> : '' }</p>
         <p>{this.state.midiEnabled ? <button onClick={this.fetchSongList}>See Saved Songs</button> : '' }</p>
-        <p>{this.state.midiEnabled ? (this.state.recording ? <button onClick={this.stopRecord}>STOP Record</button> : <button onClick={this.recordSong}>START Record</button>) : ''}</p>
-        <p>{this.state.currentsong.length < 2 ? '' : (this.state.playing === true ? <button disabled>Song Is Playing</button> : <button onClick={this.playSong}>PLAY Song</button>)}</p>
-        <p>{this.state.currentsong.length < 2 ? '' : <span><button onClick={this.makeLouder}>MAKE LOUDER</button>      <button onClick={this.makeSofter}>Make softer</button></span>}</p>
-        <p>{this.state.currentsong.length < 2 ? '' : <span><button onClick={() => this.changeTempo(.77)}>Play Faster</button>      <button onClick={() => this.changeTempo(1.3)}>Play Slower</button></span>}</p>
-        <p>{this.state.currentsong.length < 2 ? '' : <span><button onClick={() => this.transposeSong(1)}>Transpose Up</button>      <button onClick={() => this.transposeSong(-1)}>Transpose Down</button></span>}</p>
-        <p>{this.state.currentsong.length < 2 ? '' : <button onClick={this.resetSong}>Undo All Changes</button>}</p>
+
+        <SongSelector handleSelect={this.handleSelect} songList={this.state.savedsongs}/>
+
+        <p>{this.state.midiEnabled ? (this.state.isRecording ? <button onClick={this.stopRecord}>STOP Record</button> : <button onClick={this.recordSong}>RECORD NEW SONG</button>) : ''}</p>
+
+        <p>{this.state.currentsong.length < 2 ? '' : (this.state.isPlaying === true ? <button disabled>Song Is Playing</button> : <button onClick={this.playSong}>PLAY Song</button>)}</p>
+
         <p>{this.state.currentsong.length < 2 ? '' : <button onClick={this.saveCurrentSong}>Save As New Song</button>}</p>
+
+          <SongController
+            currentsonglength={this.state.currentsong.length}
+            makeLouder={this.makeLouder}
+            makeSofter={this.makeSofter}
+            changeTempo={this.changeTempo}
+            transposeSong={this.transposeSong}
+            resetSong={this.resetSong}/>
       </div>
     );
   }
