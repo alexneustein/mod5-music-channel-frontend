@@ -3,7 +3,8 @@ import logo from './logo.svg';
 import './App.css';
 import SongSelector from "./SongSelector";
 import SongController from "./SongController";
-// import { Button, Confirm } from 'semantic-ui-react'
+import SongSave from "./SongSave";
+import { Confirm, Divider } from 'semantic-ui-react'
 // import WebMidi from '../node_modules/webmidi/webmidi.min';
 
 class App extends Component {
@@ -20,7 +21,8 @@ class App extends Component {
     midiOutput: null,
     isRecording: false,
     isPlaying: false,
-    pageLoaded: 0
+    pageLoaded: 0,
+    prompt: false
   }
 
   componentDidMount() {
@@ -58,9 +60,6 @@ class App extends Component {
   getMIDIIO = (midiAccess) => {
     var inputs = midiAccess.inputs;
     var outputs = midiAccess.outputs;
-    // for (var output of outputs.values()) {
-    //   console.log(output);
-    // }
     // ****Keyboard Select if time permits
     let outputdevice
     let inputdevice
@@ -84,7 +83,7 @@ class App extends Component {
     if (outputdevice.name === undefined) {
       outputdevice = this.state.midiOutput
     }
-    const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded
+    const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 100
     outputdevice.send( [ 0x90, 0x2A, 0x70 ], msSinceLoad+500 );
     outputdevice.send( [ 0x90, 0x31, 0x70 ], msSinceLoad+501 );
     outputdevice.send( [ 0x90, 0x3A, 0x70 ], msSinceLoad+502 );
@@ -92,10 +91,21 @@ class App extends Component {
     outputdevice.send( [ 0x90, 0x46, 0x70 ], msSinceLoad+504 );
   }
 
+  promptShow = (e) => {
+    if (this.state.isSongSaved === false) {
+      this.setState({ prompt: true })
+    }
+    else {
+      this.recordSong()
+    }
+  }
+
+  promptConfirm = () => this.setState({ prompt: false }, () => this.recordSong())
+  promptCancel = () => this.setState({ prompt: false })
+
   recordSong = () => {
     this.setState({
       isRecording: true,
-      isSongSaved: false,
       currentsong: [[176, 64, 0, 1]],
       currentsongbackup: [],
       currentSongID: null,
@@ -132,9 +142,16 @@ class App extends Component {
   }
 
   stopRecord = () => {
-    this.setState({
-      isRecording: false,
-    }, this.adjustStartTime)
+    if (this.state.currentsong.length > 1) {
+      this.setState({
+        isRecording: false,
+        isSongSaved: false
+      }, this.adjustStartTime)
+    } else {
+      this.setState({
+        isRecording: false,
+      })
+    }
   }
 
   getSongFromState = (arg) => {
@@ -174,7 +191,8 @@ class App extends Component {
   resetSong = () => {
     let resetSong = this.getSongFromState(this.state.currentsongbackup)
     this.setState({
-      currentsong: resetSong
+      currentsong: resetSong,
+      isSongSaved: null
     })
   }
 
@@ -187,7 +205,8 @@ class App extends Component {
       }
     }
     this.setState({
-      currentsong: louderSong
+      currentsong: louderSong,
+      isSongSaved: false
     })
   }
 
@@ -199,7 +218,8 @@ class App extends Component {
       }
     }
     this.setState({
-      currentsong: softerSong
+      currentsong: softerSong,
+      isSongSaved: false
     })
   }
 
@@ -209,7 +229,8 @@ class App extends Component {
         event[3] = Math.round(event[3] * float)
     }
     this.setState({
-      currentsong: changedSong
+      currentsong: changedSong,
+      isSongSaved: false
     })
   }
 
@@ -221,7 +242,8 @@ class App extends Component {
       }
     }
     this.setState({
-      currentsong: changedSong
+      currentsong: changedSong,
+      isSongSaved: false
     })
   }
 
@@ -232,7 +254,7 @@ class App extends Component {
         isPlaying: true
       }, () => {
         const outputdevice = this.state.midiOutput
-        const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 100
+        const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 500
         for (const note of theSong) {
           outputdevice.send( [ note[0], note[1], note[2] ], msSinceLoad+note[3] );
         }
@@ -246,7 +268,7 @@ class App extends Component {
     }
   }
 
-  saveCurrentSong = () => {
+  saveSong = (arg) => {
     let songToSave = this.getSongFromState(this.state.currentsong)
     let songObj = {}
     songObj["title"] = "Song Title"
@@ -256,12 +278,21 @@ class App extends Component {
     this.setState({
       isSongSaved: true
     })
-    fetch('http://localhost:3001/songs/', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: songJSON
-    }).then(res => res.json())
-    .then(console.log())
+    if (arg === 'new' ) {
+      fetch('http://localhost:3001/songs/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: songJSON
+      }).then(res => res.json())
+      .then(console.log())
+    } else {
+      fetch(`http://localhost:3001/songs/${this.state.currentSongID}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: songJSON
+      }).then(res => res.json())
+      .then(console.log())
+    }
   }
 
   fetchSongList = () => {
@@ -276,19 +307,33 @@ class App extends Component {
     })
   }
 
-  handleSelect = (e) => {
-
-    const selectedSong = this.state.savedsongs.find(song => song.id === parseInt(e.target.id))
-    console.log(selectedSong);
+  handleSelect = (song_id) => {
+    const selectedSong = this.state.savedsongs.find(song => song.id === parseInt(song_id))
     this.setState({
       currentSongID: selectedSong.id,
       currentSongTitle: selectedSong.title
-    },
-      this.setCurrentSong)
+    }, () => this.fetchSong())
   }
 
+  fetchSong = () => {
+    const fetchPath = `http://localhost:3001/songs/${this.state.currentSongID}`
+    fetch(fetchPath)
+    .then(res => res.json())
+    .then(this.loadSong)
+  }
 
-
+  loadSong = (resData) => {
+    var songArray = resData.songdata.slice()
+    var convertedSongArray = [];
+    for (var note of songArray) {
+      convertedSongArray.push(note.map(Number))
+    }
+    this.setState({
+      currentsong: convertedSongArray,
+      currentsongbackup: convertedSongArray,
+      isSongSaved: null
+    })
+  }
 
   render() {
 
@@ -301,18 +346,28 @@ class App extends Component {
         </header>
 
         <p>{this.state.midiEnabled ? <button onClick={this.startChime}>Play Chime</button> : '' }</p>
-        <p>{this.state.midiEnabled ? <button onClick={this.fetchSongList}>See Saved Songs</button> : '' }</p>
+        <p>{this.state.midiEnabled ? <button onClick={this.fetchSongList}>Open A Saved Song</button> : '' }</p>
 
-        <SongSelector handleSelect={this.handleSelect} songList={this.state.savedsongs}/>
+        <SongSelector isSongSaved={this.state.isSongSaved} handleSelect={this.handleSelect} songList={this.state.savedsongs}/>
 
-        <p>{this.state.midiEnabled ? (this.state.isRecording ? <button onClick={this.stopRecord}>STOP Record</button> : <button onClick={this.recordSong}>RECORD NEW SONG</button>) : ''}</p>
+        <p>{this.state.midiEnabled ? (this.state.isRecording ? <button onClick={this.stopRecord}>STOP Record</button> : <button onClick={this.promptShow}>RECORD NEW SONG</button>) : ''}</p>
+        <Confirm open={this.state.prompt} content='Save your new recording first?' cancelButton='Yes'
+        confirmButton="No" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
+      <Divider />
+      <SongSave
+        currentsonglength={this.state.currentsong.length}
+        isRecording={this.state.isRecording}
+        isSongSaved={this.state.isSongSaved}
+        saveSong={this.saveSong}
+        />
 
-        <p>{this.state.currentsong.length < 2 ? '' : (this.state.isPlaying === true ? <button disabled>Song Is Playing</button> : <button onClick={this.playSong}>PLAY Song</button>)}</p>
 
-        <p>{this.state.currentsong.length < 2 ? '' : <button onClick={this.saveCurrentSong}>Save As New Song</button>}</p>
 
           <SongController
             currentsonglength={this.state.currentsong.length}
+            isPlaying={this.state.isPlaying}
+            isRecording={this.state.isRecording}
+            playSong = {this.playSong}
             makeLouder={this.makeLouder}
             makeSofter={this.makeSofter}
             changeTempo={this.changeTempo}
