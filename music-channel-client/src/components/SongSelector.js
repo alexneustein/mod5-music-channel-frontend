@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { List, Confirm, Divider } from 'semantic-ui-react'
+import { Container, Loader, List, Confirm, Divider} from 'semantic-ui-react'
 
 class SongSelector extends Component {
   state = {
@@ -22,6 +22,14 @@ class SongSelector extends Component {
     render() {
       const songList = this.props.songList
       const { prompt } = this.state
+
+      if(this.props.songsLoading) {
+        return (
+          <Container>
+              <Loader active inline>Loading Songs</Loader>
+          </Container>
+        )
+      }
       return (
         <div className="sixteen wide column">
           <List>

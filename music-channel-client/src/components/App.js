@@ -1,107 +1,64 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import SongSelector from "./SongSelector";
 import SongController from "./SongController";
 import SongSave from "./SongSave";
-import { Confirm, Divider } from 'semantic-ui-react'
-// import WebMidi from '../node_modules/webmidi/webmidi.min';
+import SongTitleChange from "./SongTitleChange";
+import { MIDIinit } from "./MIDIinit";
+import { Container, Confirm, Divider, Button } from 'semantic-ui-react'
 
 class App extends Component {
-  state = {
-    savedsongs: [],
-    currentSongTitle: null,
-    currentSongID: null,
-    currentsongbackup: [],
-    currentsong: [[176, 64, 0, 1]],
-    isSongSaved: null,
-    midiEnabled: false,
-    midiAccess: null,
-    midiInput: null,
-    midiOutput: null,
-    isRecording: false,
-    isPlaying: false,
-    pageLoaded: 0,
-    prompt: false
-  }
+ constructor(props) {
+   super(props);
+   const timingInfo = new Date().valueOf()-800
+   MIDIinit.requestMIDI()
+   this.state = {
+     savedsongs: [],
+     currentSongTitle: null,
+     currentSongID: null,
+     currentsongbackup: [],
+     currentsong: [[176, 64, 0, 1]],
+     isSongSaved: null,
+     midiInput: null,
+     midiOutput: null,
+     isRecording: false,
+     isPlaying: false,
+     pageLoaded: timingInfo,
+     shouldPrompt: false,
+     songsLoading: false
+   }
+ }
 
   componentDidMount() {
-    const timingInfo = new Date().valueOf()-800
     window.setTimeout(() => {
       this.setState({
-        pageLoaded: timingInfo
-      }, () => {this.requestMIDI()})
+        midiInput: MIDIinit.midiInput,
+        midiOutput: MIDIinit.midiOutput
+      }, () => {this.startChime()});
     }, 1000)
   }
 
-  requestMIDI = () => {
-    if (this.state.midiEnabled) {
-        console.log('MIDI already enabled!')
-        this.getMIDIIO(this.state.midiAccess)
-      } else {
-        console.log('MIDI not yet enabled. Enabling...')
-        navigator.requestMIDIAccess()
-        .then(this.onMIDISuccess, this.onMIDIFailure);
-      }
-    }
-
-  onMIDIFailure = () => {
-      console.log('Could not access your MIDI devices.');
-  }
-
-  onMIDISuccess = (midiAccess) => {
-    console.log('MIDI enabled!')
-    this.setState({
-      midiEnabled: true,
-      midiAccess: midiAccess
-    }, () => {this.getMIDIIO(midiAccess)})
-  }
-
-  getMIDIIO = (midiAccess) => {
-    var inputs = midiAccess.inputs;
-    var outputs = midiAccess.outputs;
-    // ****Keyboard Select if time permits
-    let outputdevice
-    let inputdevice
-    for (var output of outputs.values()) {
-      if ((output.name === 'USB2.0-MIDI Port 1') || (output.name === 'P115 Digital Piano')) {
-        outputdevice = output
-      }
-    }
-    for (var input of inputs.values()) {
-        if ((input.name === 'USB2.0-MIDI Port 1') || (input.name === 'P115 Digital Piano')) {
-          inputdevice = input
-        }
-    }
-    this.setState({
-      midiInput: inputdevice,
-      midiOutput: outputdevice
-    }, () => {this.startChime(outputdevice)})
-  }
-
-  startChime = ( outputdevice ) => {
-    if (outputdevice.name === undefined) {
-      outputdevice = this.state.midiOutput
-    }
-    const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 100
-    outputdevice.send( [ 0x90, 0x2A, 0x70 ], msSinceLoad+500 );
-    outputdevice.send( [ 0x90, 0x31, 0x70 ], msSinceLoad+501 );
-    outputdevice.send( [ 0x90, 0x3A, 0x70 ], msSinceLoad+502 );
-    outputdevice.send( [ 0x90, 0x3D, 0x70 ], msSinceLoad+503 );
-    outputdevice.send( [ 0x90, 0x46, 0x70 ], msSinceLoad+504 );
+  startChime = () => {
+    const outputdevice = this.state.midiOutput
+    const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 1000
+    outputdevice.send( [ 0x90, 0x2A, 0x70 ], msSinceLoad+1000 );
+    outputdevice.send( [ 0x90, 0x31, 0x70 ], msSinceLoad+1010 );
+    outputdevice.send( [ 0x90, 0x3A, 0x70 ], msSinceLoad+1020 );
+    outputdevice.send( [ 0x90, 0x3D, 0x70 ], msSinceLoad+1030 );
+    outputdevice.send( [ 0x90, 0x46, 0x70 ], msSinceLoad+1040 );
   }
 
   promptShow = (e) => {
     if (this.state.isSongSaved === false) {
-      this.setState({ prompt: true })
+      this.setState({ shouldPrompt: true })
     }
     else {
       this.recordSong()
     }
   }
 
-  promptConfirm = () => this.setState({ prompt: false }, () => this.recordSong())
-  promptCancel = () => this.setState({ prompt: false })
+  promptConfirm = () => this.setState({ shouldPrompt: false }, () => this.recordSong())
+  promptCancel = () => this.setState({ shouldPrompt: false })
 
   recordSong = () => {
     this.setState({
@@ -145,7 +102,8 @@ class App extends Component {
     if (this.state.currentsong.length > 1) {
       this.setState({
         isRecording: false,
-        isSongSaved: false
+        isSongSaved: false,
+        currentSongTitle: 'Untitled Song'
       }, this.adjustStartTime)
     } else {
       this.setState({
@@ -247,6 +205,13 @@ class App extends Component {
     })
   }
 
+  changeTitle = (newTitle) => {
+    this.setState({
+      currentSongTitle: newTitle,
+      isSongSaved: false
+    })
+  }
+
   playSong = () => {
     if (this.state.isPlaying === false) {
       let theSong = this.getSongFromState(this.state.currentsong)
@@ -268,10 +233,18 @@ class App extends Component {
     }
   }
 
+  stopPlaying = () => {
+    const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 1000
+    const outputdevice = this.state.midiOutput
+    // outputdevice.send( [ 176, 7, 0 ], msSinceLoad+1000);
+    // outputdevice.send( [ 252 ], msSinceLoad+1000);
+    // outputdevice.send( [ 252 ], msSinceLoad+1000);
+  }
+
   saveSong = (arg) => {
     let songToSave = this.getSongFromState(this.state.currentsong)
     let songObj = {}
-    songObj["title"] = "Song Title"
+    songObj["title"] = this.state.currentSongTitle
     songObj["user_id"] = "1"
     songObj["songdata"] = songToSave
     const songJSON = JSON.stringify(songObj)
@@ -284,18 +257,21 @@ class App extends Component {
         headers: {'Content-Type': 'application/json'},
         body: songJSON
       }).then(res => res.json())
-      .then(console.log())
+      .then(this.fetchSongList)
     } else {
       fetch(`http://localhost:3001/songs/${this.state.currentSongID}`, {
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
         body: songJSON
       }).then(res => res.json())
-      .then(console.log())
+      .then(this.fetchSongList)
     }
   }
 
   fetchSongList = () => {
+    this.setState({
+      songsLoading: true
+    })
     fetch('http://localhost:3001/songs/')
     .then(res => res.json())
     .then(this.renderSongList)
@@ -303,7 +279,8 @@ class App extends Component {
 
   renderSongList = (resData) => {
     this.setState({
-      savedsongs: resData
+      savedsongs: resData,
+      songsLoading: false
     })
   }
 
@@ -339,41 +316,64 @@ class App extends Component {
 
     return (
 
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to Song Recorder</h1>
-        </header>
+      <Container>
 
-        <p>{this.state.midiEnabled ? <button onClick={this.startChime}>Play Chime</button> : '' }</p>
-        <p>{this.state.midiEnabled ? <button onClick={this.fetchSongList}>Open A Saved Song</button> : '' }</p>
+        {/* PLAY CHIME */}
+        <p>{this.state.midiOutput ? <Button basic onClick={this.startChime}>Play Chime</Button> : '' }</p>
 
-        <SongSelector isSongSaved={this.state.isSongSaved} handleSelect={this.handleSelect} songList={this.state.savedsongs}/>
+        {/* FETCH SAVED SONGS */}
+        <p>{this.state.midiOutput ? <Button basic onClick={this.fetchSongList}>Open A Saved Song</Button> : '' }</p>
 
-        <p>{this.state.midiEnabled ? (this.state.isRecording ? <button onClick={this.stopRecord}>STOP Record</button> : <button onClick={this.promptShow}>RECORD NEW SONG</button>) : ''}</p>
-        <Confirm open={this.state.prompt} content='Save your new recording first?' cancelButton='Yes'
-        confirmButton="No" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
-      <Divider />
-      <SongSave
-        currentsonglength={this.state.currentsong.length}
-        isRecording={this.state.isRecording}
-        isSongSaved={this.state.isSongSaved}
-        saveSong={this.saveSong}
-        />
+        {/* SONG LIST COMPONENT */}
+        <Container>
+        <SongSelector
+          isSongSaved={this.state.isSongSaved} handleSelect={this.handleSelect}
+          songList={this.state.savedsongs}
+          songsLoading={this.state.songsLoading}
+          />
+        </Container>
 
+        {/* RECORD BUTTON */}
+        <p>{this.state.midiInput ? (this.state.isRecording ? <Button basic onClick={this.stopRecord}>STOP Record</Button> : <Button basic onClick={this.promptShow}>RECORD NEW SONG</Button>) : ''}</p>
+        <Confirm open={this.state.shouldPrompt} content='Proceed without saving changes?' cancelButton='No'
+        confirmButton="Yes" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
 
+        <Divider />
 
-          <SongController
-            currentsonglength={this.state.currentsong.length}
-            isPlaying={this.state.isPlaying}
-            isRecording={this.state.isRecording}
-            playSong = {this.playSong}
-            makeLouder={this.makeLouder}
-            makeSofter={this.makeSofter}
-            changeTempo={this.changeTempo}
-            transposeSong={this.transposeSong}
-            resetSong={this.resetSong}/>
-      </div>
+        {/* SONG TITLE */}
+        <h3>{this.state.currentSongTitle}</h3>
+
+        {/* CHANGE TITLE BUTTON */}
+        <SongTitleChange
+          currentSongTitle={this.state.currentSongTitle}
+          changeTitle={this.changeTitle}
+          />
+
+        {/* SAVE BUTTON */}
+        <SongSave
+          currentsonglength={this.state.currentsong.length}
+          isRecording={this.state.isRecording}
+          isSongSaved={this.state.isSongSaved}
+          currentSongID={this.state.currentSongID}
+          saveSong={this.saveSong}
+          />
+
+        {/* SONG CONTROLS */}
+        <SongController
+          currentsonglength={this.state.currentsong.length}
+          isPlaying={this.state.isPlaying}
+          isRecording={this.state.isRecording}
+          playSong = {this.playSong}
+          makeLouder={this.makeLouder}
+          makeSofter={this.makeSofter}
+          changeTempo={this.changeTempo}
+          transposeSong={this.transposeSong}
+          resetSong={this.resetSong}
+          />
+
+        <Button basic onClick={this.stopPlaying}>STOP</Button>
+
+      </Container>
     );
   }
 }
