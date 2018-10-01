@@ -18,6 +18,7 @@ class App extends Component {
      currentSongID: null,
      currentsongbackup: [],
      currentsong: [[176, 64, 0, 1]],
+     currentSongDuration: null,
      isSongSaved: null,
      midiInput: null,
      midiOutput: null,
@@ -25,7 +26,8 @@ class App extends Component {
      isPlaying: false,
      pageLoaded: timingInfo,
      shouldPrompt: false,
-     songsLoading: false
+     songsLoading: false,
+     counterObj: { playprogress: null, total: null, percent: 0, currenttext: "0:00", totaltext: "0:00" }
    }
  }
 
@@ -143,7 +145,7 @@ class App extends Component {
     this.setState({
       currentsong: adjustedSong,
       currentsongbackup: adjustedSong
-    })
+    }, this.populateCounter)
   }
 
   resetSong = () => {
@@ -216,7 +218,8 @@ class App extends Component {
     if (this.state.isPlaying === false) {
       let theSong = this.getSongFromState(this.state.currentsong)
       this.setState({
-        isPlaying: true
+        isPlaying: true,
+        counterObj: {...this.state.counterObj, playprogress: 0}
       }, () => {
         const outputdevice = this.state.midiOutput
         const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 500
@@ -224,7 +227,8 @@ class App extends Component {
           outputdevice.send( [ note[0], note[1], note[2] ], msSinceLoad+note[3] );
         }
       })
-      let theduration = theSong[theSong.length - 1][3];
+      const theduration = this.state.currentSongDuration;
+      this.startCounter()
       window.setTimeout(() => {
         this.setState({
           isPlaying: false
@@ -233,9 +237,59 @@ class App extends Component {
     }
   }
 
+
+  startCounter = () => {
+    let playprogress = this.state.counterObj.playprogress
+    // let playtext = this.state.counterObj.current
+    let interval
+    const duration = Math.round(this.state.currentSongDuration/1000)
+    const countUp = () => {
+      let playprogress = this.state.counterObj.playprogress
+      let newprogress = playprogress + 1;
+      let newtext = this.secondsToTime(newprogress)
+      let percent = (newprogress / this.state.counterObj.total)*100
+      if (newprogress === duration) {
+        clearInterval(interval);
+      }
+      this.setState({
+        counterObj: {...this.state.counterObj, percent: percent, playprogress: newprogress, currenttext: newtext}
+      })
+      }
+    if (this.state.currentSongDuration !== null && playprogress !== null) {
+      interval = setInterval(countUp, 1000);
+    }
+  }
+
+  secondsToTime = (secs) => {
+    // let hours = Math.floor(secs / (60 * 60));
+    let divisor_for_minutes = secs % (60 * 60);
+    let minutes = Math.floor(divisor_for_minutes / 60);
+
+    let divisor_for_seconds = divisor_for_minutes % 60;
+    let seconds = Math.ceil(divisor_for_seconds);
+    if (seconds < 10) {
+      seconds = "0" + seconds
+    }
+
+    let string = minutes + ":" + seconds
+    return string;
+  }
+
+  // setDurationState = (duration) => {
+  //   this.setState({
+  //     counterDuration: duration
+  //   })
+  // }
+
+  betterPlaySong = () => {
+    if (this.state.isPlaying === false) {
+
+    }
+  }
+
   stopPlaying = () => {
-    const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 1000
-    const outputdevice = this.state.midiOutput
+    // const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 1000
+    // const outputdevice = this.state.midiOutput
     // outputdevice.send( [ 176, 7, 0 ], msSinceLoad+1000);
     // outputdevice.send( [ 252 ], msSinceLoad+1000);
     // outputdevice.send( [ 252 ], msSinceLoad+1000);
@@ -300,20 +354,30 @@ class App extends Component {
   }
 
   loadSong = (resData) => {
-    var songArray = resData.songdata.slice()
-    var convertedSongArray = [];
+    const songArray = resData.songdata.slice()
+    let convertedSongArray = [];
     for (var note of songArray) {
       convertedSongArray.push(note.map(Number))
     }
     this.setState({
       currentsong: convertedSongArray,
       currentsongbackup: convertedSongArray,
-      isSongSaved: null
+      isSongSaved: null,
+    }, this.populateCounter)
+  }
+
+  populateCounter = () => {
+    let theSong = this.getSongFromState(this.state.currentsong)
+    const songDuration = (theSong[theSong.length - 1][3])
+    const songDurationSec = Math.round(songDuration/1000)
+    const songDurationTime = this.secondsToTime(Math.round(songDuration/1000))
+    this.setState({
+      currentSongDuration: songDuration,
+      counterObj: {...this.state.counterObj, playprogress: 0, currenttext: "0:00", percent: 0, total: songDurationSec, totaltext: songDurationTime}
     })
   }
 
   render() {
-
     return (
 
       <Container>
@@ -369,7 +433,12 @@ class App extends Component {
           changeTempo={this.changeTempo}
           transposeSong={this.transposeSong}
           resetSong={this.resetSong}
+          currentSongDuration={this.state.currentSongDuration}
+          counterObj={this.state.counterObj}
           />
+
+        {/* BETTER PLAY CONTROLS */}
+        <Button basic onClick={this.stopPlaying}>BETTER PLAY</Button>
 
         <Button basic onClick={this.stopPlaying}>STOP</Button>
 
