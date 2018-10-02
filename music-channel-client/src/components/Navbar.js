@@ -34,7 +34,7 @@ class Navbar extends Component {
               <Icon name='music' size='huge' />
               <Header.Content>
                  PianoCast
-                <Header.Subheader>Spread the music</Header.Subheader>
+                <Header.Subheader>Share your music</Header.Subheader>
               </Header.Content>
             </Header>
           </Menu.Item>
