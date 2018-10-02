@@ -10,7 +10,7 @@ import 'semantic-ui-css/semantic.min.css';
 import registerServiceWorker from './registerServiceWorker';
 
 ReactDOM.render(
-  <ActionCableProvider url='ws://localhost:3001/cable'>
+  <ActionCableProvider url='ws://10.39.111.2:3001/cable'>
     <Router>
       <App />
     </Router>
