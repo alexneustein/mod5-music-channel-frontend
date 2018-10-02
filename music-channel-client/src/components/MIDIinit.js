@@ -32,13 +32,16 @@ export const MIDIinit = {
     let outputdevice
     let inputdevice
     for (var output of outputs.values()) {
-      if ((output.name === 'USB2.0-MIDI Port 1') || (output.name === 'P115 Digital Piano')) {
+      // *** TO ADD A NEW KEYBOARD, UNCOMMENT THE BELOW
+      // console.log(output);
+      if ((output.name === 'USB2.0-MIDI Port 1') || (output.name === 'P115 Digital Piano') || (output.name === 'microKEY-37 CTRL')) {
         outputdevice = output
         MIDIinit.midiStatus = 'Output Connected'
       }
     }
     for (var input of inputs.values()) {
-        if ((input.name === 'USB2.0-MIDI Port 1') || (input.name === 'P115 Digital Piano')) {
+      // console.log(input);
+        if ((input.name === 'USB2.0-MIDI Port 1') || (input.name === 'P115 Digital Piano') || (input.name === 'microKEY-37 KEYBOARD')) {
           inputdevice = input
           MIDIinit.midiStatus = 'Input Connected'
         }

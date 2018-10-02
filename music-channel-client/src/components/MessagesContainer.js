@@ -7,7 +7,6 @@ import { Comment, Header } from 'semantic-ui-react'
 export default class MessagesContainer extends Component {
 
   render() {
-    console.log('this.props.messages: ',this.props.messages)
     return (
       <div>
         <Comment.Group>

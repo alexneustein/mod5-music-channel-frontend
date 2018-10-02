@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { ActionCable } from 'react-actioncable-provider'
-import { RAILS_URL, RAILS_USER } from "./RailsURL";
+import { RAILS_URL, RAILS_USER, WS_URL } from "./RailsURL";
 import MessagesContainer from './MessagesContainer'
 
 
@@ -26,13 +26,13 @@ class ChatRoom extends Component {
   }
 
   openConnection = () => {
-    return new WebSocket("ws://10.39.111.2:3001/cable")
+    return new WebSocket(`${WS_URL}/cable`)
     // return new WebSocket("ws://10.39.104.225:3000/cable")
     // return new WebSocket("wss://flatironchatterbox-api.herokuapp.com/cable")
   }
 
   onReceived = (e) => {
-    console.log('e.message.message', e.message.message);
+    // console.log('e.message.message', e.message.message);
     if(e.message.message){
       this.createMessage(e.message.message)
     } else {

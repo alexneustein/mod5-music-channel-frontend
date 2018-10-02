@@ -6,9 +6,10 @@ import SongController from "./SongController";
 import SongSave from "./SongSave";
 import SongTitleChange from "./SongTitleChange";
 import ChatRoom from "./ChatRoom";
+import PianoRoom from "./PianoRoom";
 import { MIDIinit } from "./MIDIinit";
 import { RAILS_URL, RAILS_USER } from "./RailsURL";
-import { Container, Segment, Grid, Confirm, Button, Icon} from 'semantic-ui-react'
+import { Container, Segment, Grid, Confirm, Button, Icon, Divider} from 'semantic-ui-react'
 
 class App extends Component {
  constructor(props) {
@@ -467,21 +468,12 @@ class App extends Component {
             <Grid.Column width={4}>
               {/* CHAT ROOM */}
               <ChatRoom currentUser={this.state.currentUser}/>
+              <Divider />
+              {/* PIANO ROOM */}
+              {<PianoRoom currentsong={this.state.currentsong} currentUser={this.state.currentUser} midiInput={this.state.midiInput}/>}
             </Grid.Column>
           </Grid>
         </Segment>
-
-
-
-
-
-
-
-
-
-
-
-
 
           {/* BETTER PLAY CONTROLS
           <Button basic onClick={this.stopPlaying}>BETTER PLAY</Button>

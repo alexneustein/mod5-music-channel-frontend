@@ -2,7 +2,6 @@ import React from 'react';
 import { Button, Comment, Form } from 'semantic-ui-react'
 
 const Message = (props) => {
-console.log('Message Component props: ',props);
     return (
         <div>
           <Comment.Group size='mini'>
