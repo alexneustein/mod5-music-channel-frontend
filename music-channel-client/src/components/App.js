@@ -4,6 +4,7 @@ import SongSelector from "./SongSelector";
 import SongController from "./SongController";
 import SongSave from "./SongSave";
 import SongTitleChange from "./SongTitleChange";
+import ChatRoom from "./ChatRoom";
 import { MIDIinit } from "./MIDIinit";
 import { Container, Confirm, Divider, Button } from 'semantic-ui-react'
 
@@ -12,6 +13,7 @@ class App extends Component {
    super(props);
    const timingInfo = new Date().valueOf()-800
    MIDIinit.requestMIDI()
+   this.fetchUser()
    this.state = {
      savedsongs: [],
      currentSongTitle: null,
@@ -27,6 +29,7 @@ class App extends Component {
      pageLoaded: timingInfo,
      shouldPrompt: false,
      songsLoading: false,
+     currentUser: {},
      counterObj: { playprogress: null, total: null, percent: 0, currenttext: "0:00", totaltext: "0:00" }
    }
  }
@@ -43,11 +46,13 @@ class App extends Component {
   startChime = () => {
     const outputdevice = this.state.midiOutput
     const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 1000
-    outputdevice.send( [ 0x90, 0x2A, 0x70 ], msSinceLoad+1000 );
-    outputdevice.send( [ 0x90, 0x31, 0x70 ], msSinceLoad+1010 );
-    outputdevice.send( [ 0x90, 0x3A, 0x70 ], msSinceLoad+1020 );
-    outputdevice.send( [ 0x90, 0x3D, 0x70 ], msSinceLoad+1030 );
-    outputdevice.send( [ 0x90, 0x46, 0x70 ], msSinceLoad+1040 );
+    if (outputdevice) {
+      outputdevice.send( [ 0x90, 0x2A, 0x70 ], msSinceLoad+1000 );
+      outputdevice.send( [ 0x90, 0x31, 0x70 ], msSinceLoad+1010 );
+      outputdevice.send( [ 0x90, 0x3A, 0x70 ], msSinceLoad+1020 );
+      outputdevice.send( [ 0x90, 0x3D, 0x70 ], msSinceLoad+1030 );
+      outputdevice.send( [ 0x90, 0x46, 0x70 ], msSinceLoad+1040 );
+    }
   }
 
   promptShow = (e) => {
@@ -377,6 +382,19 @@ class App extends Component {
     })
   }
 
+  fetchUser = () => {
+    const fetchPath = `http://localhost:3001/users/1`
+    fetch(fetchPath)
+    .then(res => res.json())
+    .then(this.loadUser)
+  }
+
+  loadUser = (user) => {
+    this.setState({
+      currentUser: user
+    })
+  }
+
   render() {
     return (
 
@@ -441,6 +459,9 @@ class App extends Component {
         <Button basic onClick={this.stopPlaying}>BETTER PLAY</Button>
 
         <Button basic onClick={this.stopPlaying}>STOP</Button>
+
+        {/* CHAT ROOM */}
+        <ChatRoom currentUser={this.state.currentUser}/>
 
       </Container>
     );

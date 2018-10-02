@@ -38,7 +38,17 @@ export const MIDIinit = {
           inputdevice = input
         }
     }
-    MIDIinit.midiInput = inputdevice
-    MIDIinit.midiOutput = outputdevice
+    if ((inputdevice === undefined) && (outputdevice === undefined)) {
+      alert('MIDI Input/Output Device Not Found');
+    } else if (inputdevice === undefined) {
+      MIDIinit.midiOutput = outputdevice
+      alert('MIDI Input Device Not Found');
+    } else if (outputdevice === undefined) {
+      MIDIinit.midiInput = inputdevice
+      alert('MIDI Output Device Not Found');
+    } else {
+      MIDIinit.midiInput = inputdevice
+      MIDIinit.midiOutput = outputdevice
+    }
   }
 }
