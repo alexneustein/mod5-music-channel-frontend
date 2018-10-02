@@ -7,7 +7,7 @@ import SongSave from "./SongSave";
 import SongTitleChange from "./SongTitleChange";
 import ChatRoom from "./ChatRoom";
 import { MIDIinit } from "./MIDIinit";
-import { RAILS_URL } from "./RailsURL";
+import { RAILS_URL, RAILS_USER } from "./RailsURL";
 import { Container, Segment, Grid, Confirm, Button, Icon} from 'semantic-ui-react'
 
 class App extends Component {
@@ -387,7 +387,7 @@ class App extends Component {
   }
 
   fetchUser = () => {
-    const fetchPath = `${RAILS_URL}/users/1`
+    const fetchPath = `${RAILS_URL}/users/${RAILS_USER}`
     fetch(fetchPath)
     .then(res => res.json())
     .then(this.loadUser)
