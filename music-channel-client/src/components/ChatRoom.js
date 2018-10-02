@@ -6,7 +6,7 @@ import MessagesContainer from './MessagesContainer'
 
 // import { Button, Divider, Progress } from 'semantic-ui-react'
 
-const RAILS_URL = "http://localhost:3001/"
+const RAILS_URL = "http://10.39.111.2:3001"
 
 class ChatRoom extends Component {
   state = {
@@ -28,7 +28,7 @@ class ChatRoom extends Component {
   }
 
   openConnection = () => {
-    return new WebSocket("ws://localhost:3001/cable")
+    return new WebSocket("ws://10.39.111.2:3001/cable")
     // return new WebSocket("ws://10.39.104.225:3000/cable")
     // return new WebSocket("wss://flatironchatterbox-api.herokuapp.com/cable")
   }

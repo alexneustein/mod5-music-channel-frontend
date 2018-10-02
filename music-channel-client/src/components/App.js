@@ -9,6 +9,8 @@ import ChatRoom from "./ChatRoom";
 import { MIDIinit } from "./MIDIinit";
 import { Container, Segment, Grid, Confirm, Button, Icon} from 'semantic-ui-react'
 
+const RAILS_URL = "http://10.39.111.2:3001"
+
 class App extends Component {
  constructor(props) {
    super(props);
@@ -314,14 +316,14 @@ class App extends Component {
       isSongSaved: true
     })
     if (arg === 'new' ) {
-      fetch('http://localhost:3001/songs/', {
+      fetch(`${RAILS_URL}/songs/`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: songJSON
       }).then(res => res.json())
       .then(this.fetchSongList)
     } else {
-      fetch(`http://localhost:3001/songs/${this.state.currentSongID}`, {
+      fetch(`${RAILS_URL}/songs/${this.state.currentSongID}`, {
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
         body: songJSON
@@ -334,7 +336,7 @@ class App extends Component {
     this.setState({
       songsLoading: true
     })
-    fetch('http://localhost:3001/songs/')
+    fetch(`${RAILS_URL}/songs/`)
     .then(res => res.json())
     .then(this.renderSongList)
   }
@@ -355,7 +357,7 @@ class App extends Component {
   }
 
   fetchSong = () => {
-    const fetchPath = `http://localhost:3001/songs/${this.state.currentSongID}`
+    const fetchPath = `${RAILS_URL}/songs/${this.state.currentSongID}`
     fetch(fetchPath)
     .then(res => res.json())
     .then(this.loadSong)
@@ -386,7 +388,7 @@ class App extends Component {
   }
 
   fetchUser = () => {
-    const fetchPath = `http://localhost:3001/users/1`
+    const fetchPath = `${RAILS_URL}/users/1`
     fetch(fetchPath)
     .then(res => res.json())
     .then(this.loadUser)
