@@ -1,12 +1,10 @@
 import React, { Component } from "react";
 import { ActionCable } from 'react-actioncable-provider'
-
+import { RAILS_URL, RAILS_USER } from "./RailsURL";
 import MessagesContainer from './MessagesContainer'
 
 
 // import { Button, Divider, Progress } from 'semantic-ui-react'
-
-const RAILS_URL = "http://10.39.111.2:3001"
 
 class ChatRoom extends Component {
   state = {
@@ -16,12 +14,12 @@ class ChatRoom extends Component {
   }
 
   componentDidMount(){
-    fetch(`${RAILS_URL}/users/1`)
+    fetch(`${RAILS_URL}/messages/`)
       .then(r=>r.json())
       .then(resp => {
         this.setState({
-          user: resp,
-          messages: resp.messages
+          user: this.props.currentUser,
+          messages: resp
         })
       }
       )

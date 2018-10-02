@@ -8,11 +8,11 @@ console.log('Message Component props: ',props);
           <Comment.Group size='mini'>
               <Comment>
                 <Comment.Content>
-                  <Comment.Author as='a'>{props.currentUser.name_first} {props.currentUser.name_last}</Comment.Author>
+                  <Comment.Author as='a'>{props.message.user.name_first} {props.message.user.name_last}</Comment.Author>
                   <Comment.Metadata>
-                    <div>{props.currentUser.username}</div>
+                    <div>{props.message.user.username}</div>
                   </Comment.Metadata>
-                  <Comment.Text>{props.content.content}</Comment.Text>
+                  <Comment.Text>{props.message.content}</Comment.Text>
 
                 </Comment.Content>
               </Comment>

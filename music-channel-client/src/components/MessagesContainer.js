@@ -17,7 +17,7 @@ export default class MessagesContainer extends Component {
 
         <div>
         {this.props.messages.map((messageBody, i) => [
-          <Message key={i} content={messageBody} currentUser={this.props.currentUser} />
+          <Message key={i} message={messageBody} />
         ])}
         </div>
         <ChatInput handleInput={this.props.handleInput} messageValue={this.props.messageValue} createMessage={this.props.createMessage} sendMessage={this.props.sendMessage} currentUser={this.props.currentUser}/>
