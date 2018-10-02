@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-import { Container, Loader, List, Confirm, Divider} from 'semantic-ui-react'
+import { Menu, Container, Loader, Confirm } from 'semantic-ui-react'
 
 class SongSelector extends Component {
   state = {
     prompt: false,
-    song_id: null
+    song_id: 0
   }
 
   show = (e) => {
@@ -22,6 +22,7 @@ class SongSelector extends Component {
     render() {
       const songList = this.props.songList
       const { prompt } = this.state
+      const { activeItem } = this.state.song_id
 
       if(this.props.songsLoading) {
         return (
@@ -30,24 +31,30 @@ class SongSelector extends Component {
           </Container>
         )
       }
-      return (
-        <div className="sixteen wide column">
-          <List>
-            {songList.map((song, i) => {
-              return (
-                <List.Item as='a' key={i} id={song.id} onClick={this.show}>
-                  {song.title}
-                </List.Item>
-              );
-            })}
+      if (this.props.songList.length > 0) {
+        return (
+          <div>
+            <Container>
+            <Menu secondary vertical>
+              {songList.map((song, i) => {
+                return (
+                  <Menu.Item as='a' key={i} id={song.id} onClick={this.show} name={song.title} active={activeItem === song.id}>
+                    {song.title}
+                  </Menu.Item>
+                );
+              })}
 
-            <Confirm open={prompt} content='Save your new recording first?' cancelButton='Yes'
-          confirmButton="No" size='mini' onCancel={this.handleCancel} onConfirm={this.handleConfirm} />
+              <Confirm open={prompt} content='Save your new recording first?' cancelButton='Yes'
+            confirmButton="No" size='mini' onCancel={this.handleCancel} onConfirm={this.handleConfirm} />
 
-          </List>
-          {songList.length > 0 ? <Divider /> : ''}
-        </div>
-      );
+        </Menu>
+            {/*songList.length > 0 ? <Divider /> : ''*/}
+          </Container>
+          </div>
+        );
+      } else {
+        return (<div></div>)
+      }
   }
 };
 

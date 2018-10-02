@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import './App.css';
+import Navbar from './Navbar';
 import SongSelector from "./SongSelector";
 import SongController from "./SongController";
 import SongSave from "./SongSave";
 import SongTitleChange from "./SongTitleChange";
 import ChatRoom from "./ChatRoom";
 import { MIDIinit } from "./MIDIinit";
-import { Container, Confirm, Divider, Button } from 'semantic-ui-react'
+import { Container, Segment, Grid, Confirm, Button, Icon} from 'semantic-ui-react'
 
 class App extends Component {
  constructor(props) {
@@ -22,6 +23,7 @@ class App extends Component {
      currentsong: [[176, 64, 0, 1]],
      currentSongDuration: null,
      isSongSaved: null,
+     midiStatus: null,
      midiInput: null,
      midiOutput: null,
      isRecording: false,
@@ -38,7 +40,8 @@ class App extends Component {
     window.setTimeout(() => {
       this.setState({
         midiInput: MIDIinit.midiInput,
-        midiOutput: MIDIinit.midiOutput
+        midiOutput: MIDIinit.midiOutput,
+        midiSuccess: MIDIinit.midiSuccess
       }, () => {this.startChime()});
     }, 1000)
   }
@@ -395,73 +398,96 @@ class App extends Component {
     })
   }
 
+
+
   render() {
     return (
 
       <Container>
+        <Segment vertical>
+          <Navbar currentUser={this.state.currentUser} midiStatus={MIDIinit.midiStatus} midiOutput={this.state.midiOutput} startChime={this.startChime}/>
+        </Segment>
+        <Segment vertical>
+          <Grid divided>
+            <Grid.Column width={4}>
+              {/* FETCH SAVED SONGS */}
+              <p>{this.state.midiOutput ? <Button basic labelPosition='left' icon onClick={this.fetchSongList}><Icon name='folder open' size='large' color='blue' />Open Saved Songs</Button> : '' }</p>
+              {/* SONG LIST COMPONENT */}
+              <Container>
+              <SongSelector
+                isSongSaved={this.state.isSongSaved} handleSelect={this.handleSelect}
+                songList={this.state.savedsongs}
+                songsLoading={this.state.songsLoading}
+                />
+              </Container>
+            </Grid.Column>
+            <Grid.Column width={8}>
+              {/* RECORD BUTTON */}
+              <p>{this.state.midiInput ? (this.state.isRecording ? <Button basic  onClick={this.stopRecord}><Icon name='stop circle' size='large' color='green' />STOP Record</Button> : <Button basic icon labelPosition='left' onClick={this.promptShow}><Icon name='circle' size='large' color='red' />RECORD NEW SONG</Button>) : ''}
+              <Confirm open={this.state.shouldPrompt} content='Proceed without saving changes?' cancelButton='No'
+              confirmButton="Yes" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
+            {this.state.isPlaying === true ? <Button icon labelPosition='left' basic disabled><Icon name='play circle outline' size='large' color='green' />Song Is Playing</Button> : (this.state.currentsong.length > 1 ? <Button icon labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button> : '')}</p>
 
-        {/* PLAY CHIME */}
-        <p>{this.state.midiOutput ? <Button basic onClick={this.startChime}>Play Chime</Button> : '' }</p>
 
-        {/* FETCH SAVED SONGS */}
-        <p>{this.state.midiOutput ? <Button basic onClick={this.fetchSongList}>Open A Saved Song</Button> : '' }</p>
+              {/* SONG TITLE */}
+              <h3>{this.state.currentSongTitle}</h3>
 
-        {/* SONG LIST COMPONENT */}
-        <Container>
-        <SongSelector
-          isSongSaved={this.state.isSongSaved} handleSelect={this.handleSelect}
-          songList={this.state.savedsongs}
-          songsLoading={this.state.songsLoading}
-          />
-        </Container>
+              {/* CHANGE TITLE BUTTON */}
+              <SongTitleChange
+                currentSongTitle={this.state.currentSongTitle}
+                changeTitle={this.changeTitle}
+                />
 
-        {/* RECORD BUTTON */}
-        <p>{this.state.midiInput ? (this.state.isRecording ? <Button basic onClick={this.stopRecord}>STOP Record</Button> : <Button basic onClick={this.promptShow}>RECORD NEW SONG</Button>) : ''}</p>
-        <Confirm open={this.state.shouldPrompt} content='Proceed without saving changes?' cancelButton='No'
-        confirmButton="Yes" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
+              {/* SAVE BUTTON */}
+              <SongSave
+                currentsonglength={this.state.currentsong.length}
+                isRecording={this.state.isRecording}
+                isSongSaved={this.state.isSongSaved}
+                currentSongID={this.state.currentSongID}
+                saveSong={this.saveSong}
+                />
 
-        <Divider />
+              {/* SONG CONTROLS */}
+              <SongController
+                currentsonglength={this.state.currentsong.length}
+                isPlaying={this.state.isPlaying}
+                isRecording={this.state.isRecording}
+                playSong = {this.playSong}
+                makeLouder={this.makeLouder}
+                makeSofter={this.makeSofter}
+                changeTempo={this.changeTempo}
+                transposeSong={this.transposeSong}
+                resetSong={this.resetSong}
+                currentSongDuration={this.state.currentSongDuration}
+                counterObj={this.state.counterObj}
+                />
 
-        {/* SONG TITLE */}
-        <h3>{this.state.currentSongTitle}</h3>
+            </Grid.Column>
+            <Grid.Column width={4}>
+              {/* CHAT ROOM */}
+              <ChatRoom currentUser={this.state.currentUser}/>
+            </Grid.Column>
+          </Grid>
+        </Segment>
 
-        {/* CHANGE TITLE BUTTON */}
-        <SongTitleChange
-          currentSongTitle={this.state.currentSongTitle}
-          changeTitle={this.changeTitle}
-          />
 
-        {/* SAVE BUTTON */}
-        <SongSave
-          currentsonglength={this.state.currentsong.length}
-          isRecording={this.state.isRecording}
-          isSongSaved={this.state.isSongSaved}
-          currentSongID={this.state.currentSongID}
-          saveSong={this.saveSong}
-          />
 
-        {/* SONG CONTROLS */}
-        <SongController
-          currentsonglength={this.state.currentsong.length}
-          isPlaying={this.state.isPlaying}
-          isRecording={this.state.isRecording}
-          playSong = {this.playSong}
-          makeLouder={this.makeLouder}
-          makeSofter={this.makeSofter}
-          changeTempo={this.changeTempo}
-          transposeSong={this.transposeSong}
-          resetSong={this.resetSong}
-          currentSongDuration={this.state.currentSongDuration}
-          counterObj={this.state.counterObj}
-          />
 
-        {/* BETTER PLAY CONTROLS */}
-        <Button basic onClick={this.stopPlaying}>BETTER PLAY</Button>
 
-        <Button basic onClick={this.stopPlaying}>STOP</Button>
 
-        {/* CHAT ROOM */}
-        <ChatRoom currentUser={this.state.currentUser}/>
+
+
+
+
+
+
+
+          {/* BETTER PLAY CONTROLS
+          <Button basic onClick={this.stopPlaying}>BETTER PLAY</Button>
+
+          <Button basic onClick={this.stopPlaying}>STOP</Button>*/}
+
+
 
       </Container>
     );

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Modal, Container } from 'semantic-ui-react'
+import { Segment, Button, Modal } from 'semantic-ui-react'
 import { Form } from 'formsy-semantic-ui-react'
 
 class SongTitleChange extends Component {
@@ -14,17 +14,17 @@ class SongTitleChange extends Component {
       if (this.props.currentSongTitle !== null) {
         return (
           <div>
-            <Modal size='mini' open={this.state.changeTitleOpen} trigger={<Button onClick={this.handleOpen} basic color='blue' basic size='mini'>Change Title</Button>}>
+            <Modal size='mini' closeOnEscape={true} closeOnDimmerClick={true} closeOnDocumentClick={true} onClose={this.close}  open={this.state.changeTitleOpen} trigger={<Button onClick={this.handleOpen} basic color='grey' basic size='mini' >Rename</Button>}>
                 <Modal.Header>Enter New Title</Modal.Header>
                   <Modal.Description>
-                    <Container>
+                    <Segment vertical>
                     <Form
                       ref={ ref => this.form = ref }
                       onValidSubmit={ this.onValidSubmit }
                       >
-                    <Form.Group widths="equal">
                       <Form.Input focus
                       name="title"
+                      value={this.props.currentSongTitle}
                       placeholder={this.props.currentSongTitle}
                       validations="isWords"
                       validationErrors={{
@@ -32,14 +32,16 @@ class SongTitleChange extends Component {
                         isDefaultRequiredValue: 'Title is Required',
                       }}
                     />
-                </Form.Group>
-                <Form.Group>
-                  <Form.Button content="Submit" color="green"/>
-                </Form.Group>
+                  <Button.Group>
+                      <Button>Cancel</Button>
+                      <Button.Or />
+                      <Form.Button positive basic content="Submit" color="green"/>
+                    </Button.Group>
+
               </Form>
-            </Container>
-                  </Modal.Description>
-              </Modal>
+            </Segment>
+          </Modal.Description>
+      </Modal>
           </div>
         )
       } else {

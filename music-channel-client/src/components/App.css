@@ -26,3 +26,9 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+/*
+.withimage {
+  background-image: url(pianoimage);
+  background-size: cover;
+  background-attachment:fixed;
+} */
