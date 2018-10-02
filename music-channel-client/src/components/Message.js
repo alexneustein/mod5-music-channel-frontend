@@ -5,8 +5,7 @@ const Message = (props) => {
 console.log('Message Component props: ',props);
     return (
         <div>
-          <Comment.Group>
-            <Comment.Group>
+          <Comment.Group size='mini'>
               <Comment>
                 <Comment.Content>
                   <Comment.Author as='a'>{props.currentUser.name_first} {props.currentUser.name_last}</Comment.Author>
@@ -18,7 +17,6 @@ console.log('Message Component props: ',props);
                 </Comment.Content>
               </Comment>
             </Comment.Group>
-          </Comment.Group>
         </div>
     )
 }

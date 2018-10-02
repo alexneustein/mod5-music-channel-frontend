@@ -7,6 +7,7 @@ import SongSave from "./SongSave";
 import SongTitleChange from "./SongTitleChange";
 import ChatRoom from "./ChatRoom";
 import { MIDIinit } from "./MIDIinit";
+import { RailsURL } from "./RailsURL";
 import { Container, Segment, Grid, Confirm, Button, Icon} from 'semantic-ui-react'
 
 class App extends Component {
