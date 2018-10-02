@@ -9,6 +9,7 @@ class PianoRoom extends Component {
     user: {},
     note: '',
     song: [],
+    receivednotes: [],
     adjustBy: null
   }
 
@@ -35,7 +36,7 @@ class PianoRoom extends Component {
 
   createNote = (note) => {
     this.setState(prevState => ({
-      song: [...prevState.song, note]
+      receivednotes: [...prevState.song, note]
     }))
   }
 
@@ -61,7 +62,6 @@ class PianoRoom extends Component {
 
   handleInput = (event) => {
     let noteArray = event
-    // console.log('event: ',noteArray)
     if (this.state.adjustBy === null) {
       let adjustStartTimeBy = noteArray[3] - 2
       this.setState({
