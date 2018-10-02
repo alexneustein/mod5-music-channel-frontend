@@ -38,7 +38,11 @@ class Navbar extends Component {
               </Header.Content>
             </Header>
           </Menu.Item>
-
+          <Menu.Item>
+            <Menu.Header as='h4'>
+              <Segment vertical>Welcome back, {this.props.currentUser.name_first} {this.props.currentUser.name_last}!</Segment>
+            </Menu.Header>
+          </Menu.Item>
           <Menu.Item position='right'>
             <Menu.Header>
               <Segment vertical>{this.statusIcon()} {this.props.midiStatus}</Segment>
