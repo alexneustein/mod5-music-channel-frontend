@@ -22,9 +22,10 @@ class App extends Component {
      currentSongTitle: null,
      currentSongID: null,
      currentsongbackup: [],
-     currentsong: [[176, 64, 0, 1]],
+     currentsong: [],
      currentSongDuration: null,
      currentSongAuthor: null,
+     isBroadcasted: null,
      isSongSaved: null,
      midiStatus: null,
      midiInput: null,
@@ -138,11 +139,10 @@ class App extends Component {
 
   adjustStartTime = () => {
     let adjustedSong = this.getSongFromState(this.state.currentsong)
-    let adjustStartTimeBy = adjustedSong[1][3] - 2;
+    let adjustStartTimeBy = adjustedSong[1][3] - 100;
     for (const note of adjustedSong) {
       note[3] = note[3] - adjustStartTimeBy;
     }
-    adjustedSong[0][3] = 1
     this.setState({
       currentsong: adjustedSong
     }, this.adjustPedalBug)
@@ -155,6 +155,7 @@ class App extends Component {
         note[0] = 176
       }
     }
+    adjustedSong.unshift([176, 64, 0, 1]) // Adds Pedal off to start of song
     this.setState({
       currentsong: adjustedSong,
     }, this.populateCounter)
@@ -382,6 +383,7 @@ class App extends Component {
       currentsong: convertedSongArray,
       currentsongbackup: convertedSongArray,
       isSongSaved: null,
+      isBroadcasted: false
     }, this.populateCounter)
   }
 
@@ -392,8 +394,9 @@ class App extends Component {
       currentsong: songArray,
       currentsongbackup: songArray,
       isSongSaved: null,
-      currentSongAuthor: user
-    })
+      currentSongAuthor: user,
+      currentSongTitle: `Live Cast From ${user.name_first} ${user.name_last}`
+    }, this.adjustStartTime)
   }
 
   populateCounter = () => {
@@ -490,7 +493,14 @@ class App extends Component {
               <ChatRoom currentUser={this.state.currentUser}/>
               <Divider />
               {/* PIANO ROOM */}
-              {<PianoRoom currentsong={this.state.currentsong} currentUser={this.state.currentUser} midiInput={this.state.midiInput} isPlaying={this.state.isPlaying} loadSongFromCast={this.loadSongFromCast}/>}
+              {<PianoRoom
+                currentsong={this.state.currentsong}
+                currentUser={this.state.currentUser}
+                midiInput={this.state.midiInput}
+                isPlaying={this.state.isPlaying}
+                loadSongFromCast={this.loadSongFromCast}
+                isBroadcasted={this.isBroadcasted}
+                />}
             </Grid.Column>
           </Grid>
         </Segment>

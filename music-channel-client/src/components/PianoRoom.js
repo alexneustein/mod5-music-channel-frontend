@@ -49,6 +49,7 @@ class PianoRoom extends Component {
       let noteCopy = [...note.content]
       currentCast = [...currentCast, noteCopy]
       currentUser = note.user
+      // arg.shift()
     };
     this.props.loadSongFromCast(currentCast, currentUser)
     // return currentCast;
@@ -142,6 +143,27 @@ class PianoRoom extends Component {
     }
   }
 
+  broadcastCurrentSong = () => {
+
+  }
+
+  // BUTTON RENDERERS
+
+  renderLiveBroadcastButton = () => {
+
+  }
+
+  renderBroadcastCurrentButton = () => {
+    if (this.props.isBroadcasted) {
+      return (<Button basic icon labelPosition='left' disabled><Icon name='checkmark' size='large' color='green' />Broadcast Complete</Button>)
+    } else {
+      if (this.props.currentsong.length === 0) {
+        return (<Button disabled basic icon labelPosition='left' onClick={this.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
+      } else {
+        return (<Button basic icon labelPosition='left' onClick={this.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
+      }
+    }
+  }
 
 
   render() {
@@ -152,13 +174,21 @@ class PianoRoom extends Component {
             channel={{channel: 'PianoChannel'}}
             onReceived={this.onReceived}
            />
-         {/* BROADCAST BUTTON */}
          <Comment.Group>
            <Header as='h3' dividing>
              Broadcast
            </Header>
-           <p>{this.state.isBroadcasting ? <Button basic icon labelPosition='left' onClick={this.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='microphone' size='large' color='red' />Broadcast Song</Button>}</p>
+           {/* LIVE BROADCAST BUTTON */}
+
+           <p>{this.state.isBroadcasting ? <Button basic icon labelPosition='left' onClick={this.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Cast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='microphone' size='large' color='red' />Cast Live Song</Button>}</p>
+
+           {/* BROADCAST CURRENT SONG BUTTON */}
+           <p>{this.renderBroadcastCurrentButton()}</p>
+
+          {/* LISTEN TO BROADCAST BUTTON */}
            <p>{this.state.isPlayingCast ? <Button basic icon labelPosition='left' onClick={this.hearBroadcast}><Icon name='bell slash' size='large' color='orange' />Mute Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.playCast}><Icon name='headphones' size='large' color='teal' />Play PianoCast</Button>}</p>
+
+
          </Comment.Group>
         </div>
       )
