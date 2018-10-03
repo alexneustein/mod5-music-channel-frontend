@@ -36,6 +36,16 @@ class PianoRoom extends Component {
     }
   }
 
+  playCast = () => {
+    this.setState({
+      isPlayingCast: true
+    }, this.moveToCurrentSong())
+  }
+
+  moveToCurrentSong = () => {
+    console.log('hi!');
+  }
+
   createNote = (note) => {
     this.setState(prevState => ({
       receivednotes: [...prevState.receivednotes, note]

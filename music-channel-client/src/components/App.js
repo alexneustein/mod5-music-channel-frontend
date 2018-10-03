@@ -124,6 +124,8 @@ class App extends Component {
     }
   }
 
+  
+
   getSongFromState = (arg) => {
     let adjustedSong = []
     for (const note of arg) {
@@ -305,6 +307,8 @@ class App extends Component {
     // outputdevice.send( [ 252 ], msSinceLoad+1000);
   }
 
+
+
   saveSong = (arg) => {
     let songToSave = this.getSongFromState(this.state.currentsong)
     let songObj = {}
@@ -470,7 +474,7 @@ class App extends Component {
               <ChatRoom currentUser={this.state.currentUser}/>
               <Divider />
               {/* PIANO ROOM */}
-              {<PianoRoom currentsong={this.state.currentsong} currentUser={this.state.currentUser} midiInput={this.state.midiInput}/>}
+              {<PianoRoom currentsong={this.state.currentsong} currentUser={this.state.currentUser} midiInput={this.state.midiInput} isPlaying={this.state.isPlaying}/>}
             </Grid.Column>
           </Grid>
         </Segment>
