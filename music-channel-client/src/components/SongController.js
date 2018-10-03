@@ -14,8 +14,6 @@ class SongController extends Component {
     }
   }
 
-// percent={counterObj.percent}
-
 
   render() {
 
@@ -30,7 +28,7 @@ class SongController extends Component {
         <Segment>
           {this.loaderLogic()}
           <Divider />
-          <Progress progress='ratio' value={counterObj.currenttext} total={counterObj.totaltext} indicating />
+          <Progress progress='ratio' percent={counterObj.percent} value={counterObj.currenttext} total={counterObj.totaltext} indicating />
 
           <Segment vertical><Button attached='left' basic onClick={this.props.makeLouder}><Icon name='volume up' size='small' color='grey' />MAKE LOUDER</Button>      <Button attached='right' basic onClick={this.props.makeSofter}><Icon name='volume down' size='small' color='grey' />Make softer</Button></Segment>
           <Segment vertical><Button basic onClick={() => this.props.changeTempo(.77)}>Play Faster</Button>      <Button basic onClick={() => this.props.changeTempo(1.3)}>Play Slower</Button></Segment>

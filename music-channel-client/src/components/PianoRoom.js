@@ -29,7 +29,7 @@ class PianoRoom extends Component {
   }
 
   onReceived = (e) => {
-    // console.log('e.note.note: ', e.note.note);
+    console.log('e.note.note: ', e.note.note);
     if(e.note.note){
       this.createNote(e.note.note)
     } else {
@@ -42,23 +42,23 @@ class PianoRoom extends Component {
       this.setState({
         isPlayingCast: true
       }, this.moveToCurrentSong(this.state.receivednotes))
-    } 
-  }
-
-  moveToCurrentSong = (arg) => {
-    if (arg.length > 0) {
-      let currentCast = []
-      let currentUser
-      for (const note of arg) {
-        let noteCopy = [...note.content]
-        currentCast = [...currentCast, noteCopy]
-        currentUser = note.user
-        // arg.shift()
-      };
-      this.props.loadSongFromCast(currentCast, currentUser)
-      // return currentCast;
     }
   }
+
+  // moveToCurrentSong = (arg) => {
+  //   if (arg.length > 0) {
+  //     let currentCast = []
+  //     let currentUser
+  //     for (const note of arg) {
+  //       let noteCopy = [...note.content]
+  //       currentCast = [...currentCast, noteCopy]
+  //       currentUser = note.user
+  //       // arg.shift()
+  //     };
+  //     this.props.loadSongFromCast(currentCast, currentUser)
+  //     // return currentCast;
+  //   }
+  // }
 
   createNote = (note) => {
     this.setState(prevState => ({
@@ -66,48 +66,48 @@ class PianoRoom extends Component {
     }))
   }
 
-  sendNote = (noteArray) => {
-    const postUser = () => {
-      if(this.props.currentUser.username){
-        return this.props.currentUser
-      } else {
-        return {username: `Anonymous`}
-      }
-    }
+  // sendNote = (noteArray) => {
+  //   const postUser = () => {
+  //     if(this.props.currentUser.username){
+  //       return this.props.currentUser
+  //     } else {
+  //       return {username: `Anonymous`}
+  //     }
+  //   }
+  //
+  //   // if(userobject.user){
+  //   //   this.refs.PianoChannel.perform('onPlay', {userobject})
+  //   // } else {
+  //     const postNote = noteArray
+  //     const note = {user: postUser(), content: postNote}
+  //     this.refs.PianoChannel.perform('onPlay', {note})
+  //     this.setState({note: ''})
+  //   // }
+  // }
 
-    // if(userobject.user){
-    //   this.refs.PianoChannel.perform('onPlay', {userobject})
-    // } else {
-      const postNote = noteArray
-      const note = {user: postUser(), content: postNote}
-      this.refs.PianoChannel.perform('onPlay', {note})
-      this.setState({note: ''})
-    // }
-  }
-
-  handleInput = (event) => {
-    let noteArray = event
-    // if (this.state.adjustBy === null) {
-    //   let adjustStartTimeBy = noteArray[3] - 2
-    //   this.setState({
-    //     adjustBy: adjustStartTimeBy
-    //   }, () => this.notesToState(noteArray))
-    // } else {
-      this.notesToState(noteArray)
-    // }
-  }
-
-  notesToState = (noteArray) => {
-    // noteArray[3] = noteArray[3] - this.state.adjustBy;
-    if (noteArray[0] === 144 && noteArray[1] === 64 && noteArray[2] === 127) {
-      noteArray[0] = 176
-    }
-    console.log('notes to state: ', noteArray);
-    this.setState({
-      song: [...this.state.song, noteArray],
-      note: noteArray
-    }, this.sendNote(noteArray))
-  }
+  // handleInput = (event) => {
+  //   let noteArray = event
+  //   // if (this.state.adjustBy === null) {
+  //   //   let adjustStartTimeBy = noteArray[3] - 2
+  //   //   this.setState({
+  //   //     adjustBy: adjustStartTimeBy
+  //   //   }, () => this.notesToState(noteArray))
+  //   // } else {
+  //     this.notesToState(noteArray)
+  //   // }
+  // }
+  //
+  // notesToState = (noteArray) => {
+  //   // noteArray[3] = noteArray[3] - this.state.adjustBy;
+  //   if (noteArray[0] === 144 && noteArray[1] === 64 && noteArray[2] === 127) {
+  //     noteArray[0] = 176
+  //   }
+  //   console.log('notes to state: ', noteArray);
+  //   this.setState({
+  //     song: [...this.state.song, noteArray],
+  //     note: noteArray
+  //   }, this.sendNote(noteArray))
+  // }
 
   // stopBroadcast = () => {
   //   this.setState({
@@ -148,9 +148,6 @@ class PianoRoom extends Component {
   //   // }
   // }
 
-  broadcastCurrentSong = () => {
-
-  }
 
   // BUTTON RENDERERS
 

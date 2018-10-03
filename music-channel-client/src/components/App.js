@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { ActionCable } from 'react-actioncable-provider'
 import './App.css';
 import Navbar from './Navbar';
 import SongSelector from "./SongSelector";
@@ -8,7 +9,7 @@ import SongTitleChange from "./SongTitleChange";
 import ChatRoom from "./ChatRoom";
 import PianoRoom from "./PianoRoom";
 import { MIDIinit } from "./MIDIinit";
-import { RAILS_URL, RAILS_USER } from "./RailsURL";
+import { RAILS_URL, RAILS_USER, WS_URL } from "./RailsURL";
 import { Container, Segment, Grid, Confirm, Button, Icon, Divider} from 'semantic-ui-react'
 
 class App extends Component {
@@ -51,6 +52,12 @@ class App extends Component {
     }, 1000)
   }
 
+  openConnection = () => {
+    return new WebSocket(`${WS_URL}/cable`)
+    // return new WebSocket("ws://10.39.104.225:3000/cable")
+    // return new WebSocket("wss://flatironchatterbox-api.herokuapp.com/cable")
+  }
+
   startChime = () => {
     const outputdevice = this.state.midiOutput
     const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 1000
@@ -91,20 +98,20 @@ class App extends Component {
             let noteArray = [144, message.data[1], message.data[2], Math.round(message.timeStamp)]
             this.setState({
               currentsong: [...this.state.currentsong, noteArray]
-            }, () => {if (this.state.isBroadcasting) {console.log('broadcast: ',noteArray);}})
+            }, () => {if (this.state.isBroadcasting) {this.sendNote(noteArray)}})
             break;
           case 128:
             let noteOffArray = [128, message.data[1], message.data[2], Math.round(message.timeStamp)]
             this.setState({
               currentsong: [...this.state.currentsong, noteOffArray]
-            }, () => {if (this.state.isBroadcasting) {console.log('broadcast: ',noteOffArray);}})
+            }, () => {if (this.state.isBroadcasting) {this.sendNote(noteOffArray)}})
             break;
           case 176:
             let pedalArray = [176, message.data[1], message.data[2], Math.round(message.timeStamp)]
             console.log('PEDAL: ', pedalArray);
             this.setState({
               currentsong: [...this.state.currentsong, pedalArray]
-            }, () => {if (this.state.isBroadcasting) {console.log('broadcast: ',pedalArray);}})
+            }, () => {if (this.state.isBroadcasting) {this.sendNote(pedalArray)}})
             break;
           case 254:
             break;
@@ -133,16 +140,38 @@ class App extends Component {
   }
 
   startBroadcast = () => {
+    this.sendNote([0,0,0,0])
     this.setState({
       isBroadcasting: true,
     }, this.promptShow)
   }
 
   stopBroadcast = () => {
+    this.sendNote([1,1,1,1])
     this.setState({
       isBroadcasting: false,
       isBroadcasted: true
     }, this.stopRecord)
+  }
+
+  // prepareBroadcast = (noteArray) => {
+  //   console.log('note to broadcast: ',noteArray);
+  // }
+
+
+
+  sendNote = (noteArray) => {
+    const postUser = () => {
+      if(this.state.currentUser.username){
+        return this.state.currentUser
+      } else {
+        return {username: `Anonymous`}
+      }
+    }
+      const postNote = noteArray
+      const note = {user: postUser(), content: postNote}
+      this.refs.PianoChannel.perform('onPlay', {note})
+      // this.setState({note: ''})
   }
 
   getSongFromState = (arg) => {
@@ -156,7 +185,7 @@ class App extends Component {
 
   adjustStartTime = () => {
     let adjustedSong = this.getSongFromState(this.state.currentsong)
-    let adjustStartTimeBy = adjustedSong[1][3] - 100;
+    let adjustStartTimeBy = adjustedSong[0][3] - 100;
     for (const note of adjustedSong) {
       note[3] = note[3] - adjustStartTimeBy;
     }
@@ -510,6 +539,11 @@ class App extends Component {
               <ChatRoom currentUser={this.state.currentUser}/>
               <Divider />
               {/* PIANO ROOM */}
+              <ActionCable
+                ref='PianoChannel'
+                channel={{channel: 'PianoChannel'}}
+                onReceived={this.onReceived}
+               />
               {<PianoRoom
                 currentsong={this.state.currentsong}
                 currentUser={this.state.currentUser}
