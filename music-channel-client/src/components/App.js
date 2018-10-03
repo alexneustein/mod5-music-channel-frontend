@@ -140,14 +140,16 @@ class App extends Component {
   }
 
   startBroadcast = () => {
-    this.sendNote([0,0,0,0])
+    const starttime = new Date()
+    this.sendNote([0,0,0,starttime])
     this.setState({
       isBroadcasting: true,
     }, this.promptShow)
   }
 
   stopBroadcast = () => {
-    this.sendNote([1,1,1,1])
+    const endtime = new Date()
+    this.sendNote([1,1,1,endtime])
     this.setState({
       isBroadcasting: false,
       isBroadcasted: true
