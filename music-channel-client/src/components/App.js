@@ -139,6 +139,8 @@ class App extends Component {
     }
   }
 
+  // START AND STOP BROADCASTS
+
   startBroadcast = () => {
     const starttime = new Date()
     this.sendNote([0,0,0,starttime])
@@ -159,8 +161,6 @@ class App extends Component {
   // prepareBroadcast = (noteArray) => {
   //   console.log('note to broadcast: ',noteArray);
   // }
-
-
 
   sendNote = (noteArray) => {
     const postUser = () => {
@@ -185,6 +185,8 @@ class App extends Component {
     return adjustedSong;
   }
 
+  // HELPER FUNCTIONS FOR SAVING
+
   adjustStartTime = () => {
     let adjustedSong = this.getSongFromState(this.state.currentsong)
     let adjustStartTimeBy = adjustedSong[0][3] - 100;
@@ -208,6 +210,8 @@ class App extends Component {
       currentsong: adjustedSong,
     }, this.populateCounter)
   }
+
+  //SONG MANIPULATION FUNCTIONS
 
   resetSong = () => {
     let resetSong = this.getSongFromState(this.state.currentsongbackup)
@@ -299,6 +303,142 @@ class App extends Component {
   }
 
 
+
+
+
+
+  // setDurationState = (duration) => {
+  //   this.setState({
+  //     counterDuration: duration
+  //   })
+  // }
+
+  betterPlaySong = () => {
+    if (this.state.isPlaying === false) {
+
+    }
+  }
+
+  stopPlaying = () => {
+    // const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 1000
+    // const outputdevice = this.state.midiOutput
+    // outputdevice.send( [ 176, 7, 0 ], msSinceLoad+1000);
+    // outputdevice.send( [ 252 ], msSinceLoad+1000);
+    // outputdevice.send( [ 252 ], msSinceLoad+1000);
+  }
+
+
+
+  // GETTING LIST OF SONGS FROM DATABASE
+
+  fetchSongList = () => {
+    this.setState({
+      songsLoading: true
+    })
+    fetch(`${RAILS_URL}/songs/`)
+    .then(res => res.json())
+    .then(this.renderSongList)
+  }
+
+  renderSongList = (resData) => {
+    this.setState({
+      savedsongs: resData,
+      songsLoading: false
+    })
+  }
+
+  // LOADING SONGS FROM DATABASE
+
+  handleSelect = (song_id) => {
+    const selectedSong = this.state.savedsongs.find(song => song.id === parseInt(song_id, 10))
+    this.setState({
+      currentSongID: selectedSong.id,
+      currentSongTitle: selectedSong.title
+    }, () => this.fetchSong())
+  }
+
+  // FETCHING SONGS FROM DATABASE
+
+  fetchSong = () => {
+    const fetchPath = `${RAILS_URL}/songs/${this.state.currentSongID}`
+    fetch(fetchPath)
+    .then(res => res.json())
+    .then(this.loadSong)
+  }
+
+  loadSong = (resData) => {
+    const songArray = resData.songdata.slice()
+    let convertedSongArray = [];
+    for (var note of songArray) {
+      convertedSongArray.push(note.map(Number))
+    }
+    this.setState({
+      currentsong: convertedSongArray,
+      currentsongbackup: convertedSongArray,
+      isSongSaved: null,
+      isBroadcasted: false
+    }, this.populateCounter)
+  }
+
+  // LOADING RECEIVED CASTS
+
+  handleCast = (song) => {
+    const parsedName = `${song.user.name_first} ${song.user.name_last}`
+    const parsedDate = `${song.date.toDateString()}, ${song.date.toLocaleTimeString()}`
+    const newTitle = `${parsedName} ${parsedDate}`
+    this.setState({
+      currentSongTitle: newTitle,
+      currentSongID: null
+    }, () => this.loadSongFromCast(song.content, song.user))
+  }
+
+  loadSongFromCast = (songArray, user) => {
+    console.log('songArray: ', songArray);
+    console.log('user: ', user);
+    this.setState({
+      currentsong: songArray,
+      currentsongbackup: songArray,
+      isSongSaved: null,
+      currentSongAuthor: user,
+    }, this.adjustStartTime)
+  }
+
+  // SAVE SONG TO DATABASE
+
+  saveSong = (arg) => {
+    let songToSave = this.getSongFromState(this.state.currentsong)
+    if (this.state.currentSongAuthor === null) {
+      this.setState({
+        currentSongAuthor: this.state.currentUser
+      })
+    }
+    let songObj = {}
+    songObj["title"] = this.state.currentSongTitle
+    songObj["user_id"] = "1"
+    songObj["songdata"] = songToSave
+    const songJSON = JSON.stringify(songObj)
+    this.setState({
+      isSongSaved: true
+    })
+    if (arg === 'new' ) {
+      fetch(`${RAILS_URL}/songs/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: songJSON
+      }).then(res => res.json())
+      .then(this.fetchSongList)
+    } else {
+      fetch(`${RAILS_URL}/songs/${this.state.currentSongID}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: songJSON
+      }).then(res => res.json())
+      .then(this.fetchSongList)
+    }
+  }
+
+  // SUPPORT FUNCTIONS FOR THE PROGRESS COUNTER
+
   startCounter = () => {
     let playprogress = this.state.counterObj.playprogress
     // let playtext = this.state.counterObj.current
@@ -336,121 +476,6 @@ class App extends Component {
     return string;
   }
 
-  // setDurationState = (duration) => {
-  //   this.setState({
-  //     counterDuration: duration
-  //   })
-  // }
-
-  betterPlaySong = () => {
-    if (this.state.isPlaying === false) {
-
-    }
-  }
-
-  stopPlaying = () => {
-    // const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 1000
-    // const outputdevice = this.state.midiOutput
-    // outputdevice.send( [ 176, 7, 0 ], msSinceLoad+1000);
-    // outputdevice.send( [ 252 ], msSinceLoad+1000);
-    // outputdevice.send( [ 252 ], msSinceLoad+1000);
-  }
-
-
-
-  saveSong = (arg) => {
-    let songToSave = this.getSongFromState(this.state.currentsong)
-    if (this.state.currentSongAuthor === null) {
-      this.setState({
-        currentSongAuthor: this.state.currentUser
-      })
-    }
-    let songObj = {}
-    songObj["title"] = this.state.currentSongTitle
-    songObj["user_id"] = "1"
-    songObj["songdata"] = songToSave
-    const songJSON = JSON.stringify(songObj)
-    this.setState({
-      isSongSaved: true
-    })
-    if (arg === 'new' ) {
-      fetch(`${RAILS_URL}/songs/`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: songJSON
-      }).then(res => res.json())
-      .then(this.fetchSongList)
-    } else {
-      fetch(`${RAILS_URL}/songs/${this.state.currentSongID}`, {
-        method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: songJSON
-      }).then(res => res.json())
-      .then(this.fetchSongList)
-    }
-  }
-
-  fetchSongList = () => {
-    this.setState({
-      songsLoading: true
-    })
-    fetch(`${RAILS_URL}/songs/`)
-    .then(res => res.json())
-    .then(this.renderSongList)
-  }
-
-  renderSongList = (resData) => {
-    this.setState({
-      savedsongs: resData,
-      songsLoading: false
-    })
-  }
-
-  handleSelect = (song_id) => {
-    const selectedSong = this.state.savedsongs.find(song => song.id === parseInt(song_id, 10))
-    this.setState({
-      currentSongID: selectedSong.id,
-      currentSongTitle: selectedSong.title
-    }, () => this.fetchSong())
-  }
-
-  handleCast = (song) => {
-    console.log('SONG LOADED!');
-  }
-
-  fetchSong = () => {
-    const fetchPath = `${RAILS_URL}/songs/${this.state.currentSongID}`
-    fetch(fetchPath)
-    .then(res => res.json())
-    .then(this.loadSong)
-  }
-
-  loadSong = (resData) => {
-    const songArray = resData.songdata.slice()
-    let convertedSongArray = [];
-    for (var note of songArray) {
-      convertedSongArray.push(note.map(Number))
-    }
-    this.setState({
-      currentsong: convertedSongArray,
-      currentsongbackup: convertedSongArray,
-      isSongSaved: null,
-      isBroadcasted: false
-    }, this.populateCounter)
-  }
-
-  loadSongFromCast = (songArray, user) => {
-    console.log('songArray: ', songArray);
-    console.log('user: ', user);
-    this.setState({
-      currentsong: songArray,
-      currentsongbackup: songArray,
-      isSongSaved: null,
-      currentSongAuthor: user,
-      currentSongTitle: `Live Cast From ${user.name_first} ${user.name_last}`
-    }, this.adjustStartTime)
-  }
-
   populateCounter = () => {
     let theSong = this.getSongFromState(this.state.currentsong)
     const songDuration = (theSong[theSong.length - 1][3])
@@ -461,6 +486,8 @@ class App extends Component {
       counterObj: {...this.state.counterObj, playprogress: 0, currenttext: "0:00", percent: 0, total: songDurationSec, totaltext: songDurationTime}
     })
   }
+
+  // GETTING THE ACTIVE USER
 
   fetchUser = () => {
     const fetchPath = `${RAILS_URL}/users/${RAILS_USER}`

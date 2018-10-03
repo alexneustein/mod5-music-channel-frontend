@@ -8,19 +8,23 @@ class CastSelector extends Component {
   }
 
   show = (e) => {
+    console.log(e.target);
     if (this.props.isSongSaved === false) {
-      this.setState({ prompt: true, activeCast: e.target.id})
+      this.setState({ prompt: true, activeCast: this.props.castList[e.target.id]})
     }
     else {
-      this.setState({ activeCast: e.target.id}, () => this.props.handleCast(this.state.activeCast))
+      this.setState({ activeCast: this.props.castList[e.target.id]}, () => this.props.handleCast(this.state.activeCast))
     }
   }
 
   parseName = (song) => {
-    // parsedName = `${song.user.name_first} ${song.user.name_last}`
-    // parsedDate = song.date.toDateString()
-    // return (`${parsedName} ${parsedDate}`)
-    return 'test'
+    const parsedName = `${song.user.name_first} ${song.user.name_last}`
+    return (parsedName)
+  }
+
+  parseDate = (song) => {
+    const parsedDate = `${song.date.toDateString()}, ${song.date.toLocaleTimeString()}`
+    return parsedDate
   }
 
   handleConfirm = () => this.setState({ prompt: false }, () => this.props.handleCast(this.state.activeCast))
@@ -38,8 +42,8 @@ class CastSelector extends Component {
             <Menu secondary vertical>
               {castList.map((song, i) => {
                 return (
-                  <Menu.Item as='a' key={i} id={i} onClick={this.show} name={() => this.parseName(song)} active={activeItem === song}>
-                    {song.title}
+                  <Menu.Item as='a' key={i} id={i} onClick={this.show} name={this.parseName(song)} active={activeItem === song}>
+                    {this.parseName(song)} - {this.parseDate(song)}
                   </Menu.Item>
                 );
               })}

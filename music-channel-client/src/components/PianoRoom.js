@@ -11,7 +11,8 @@ class PianoRoom extends Component {
     receivedCasts: [],
     playednotes: [],
     isPlayingCast: null,
-    isReceiving: null
+    isReceiving: null,
+    receivingFrom: null
   }
 
   openConnection = () => {
@@ -21,7 +22,7 @@ class PianoRoom extends Component {
   }
 
   onReceived = (e) => {
-    console.log('e.note.note: ', e.note.note);
+    // console.log('e.note.note: ', e.note.note);
     if (this.props.currentUser.username !== e.note.note.user.username) {
       if(e.note.note){
         this.createNote(e.note.note)
@@ -33,22 +34,21 @@ class PianoRoom extends Component {
 
   createNote = (note) => {
     if (note.content[0] === 0) {
-      this.setState({ isReceiving: true})
-    }
-    if (note.content[0] === 1) {
-      this.setState({ isReceiving: false},this.saveCastToState)
+      this.setState({ isReceiving: true, receivingFrom: note.user})
     }
     this.setState(prevState => ({
       receivedBuffer: [...prevState.receivedBuffer, note]
     }))
+    if (note.content[0] === 1) {
+      this.setState({ isReceiving: false, receivingFrom: null},this.saveCastToState)
+    }
   }
 
   saveCastToState = () => {
     let receivedBuffer = this.state.receivedBuffer
     let newSong = []
-    let newUser = this.state.receivedBuffer[0].user
-    const newDate = this.state.receivedBuffer[0].content[3]
-    console.log(newUser);
+    const newUser = receivedBuffer[0].user
+    const newDate = new Date(receivedBuffer[0].content[3])
     for (const note of receivedBuffer) {
       if (note.content[0] === 1) {break;}
       if (note.content[0] !== 0) {
@@ -60,7 +60,8 @@ class PianoRoom extends Component {
     for (const note of newSong) { note[3] = note[3] - adjustStartTimeBy; }
     const newCast = {user: newUser, date: newDate, song: newSong}
     this.setState(prevState => ({
-      receivedCasts: [...prevState.receivedCasts, newCast]
+      receivedCasts: [newCast, ...prevState.receivedCasts],
+      receivedBuffer: []
     }))
   }
 
@@ -105,7 +106,7 @@ class PianoRoom extends Component {
   renderReceiving = () => {
     if (this.state.isReceiving) {
       return (
-        <div><Icon loading name='sync' size='large' />Cast In Progress</div>
+        <div><Icon loading name='sync' size='large' />Receiving Cast from {this.state.receivingFrom.name_first} {this.state.receivingFrom.name_last}</div>
       )
     } else {
       return (<div></div>)
