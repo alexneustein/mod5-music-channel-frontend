@@ -26,8 +26,7 @@ class PianoRoom extends Component {
   }
 
   onReceived = (e) => {
-    console.log('e.note.note: ', e.note.note);
-    console.log('e: ', e);
+    // console.log('e.note.note: ', e.note.note);
 
     if(e.note.note){
       this.createNote(e.note.note)
@@ -37,6 +36,7 @@ class PianoRoom extends Component {
   }
 
   createNote = (note) => {
+    console.log(note);
     this.setState(prevState => ({
       receivednotes: [...prevState.receivednotes, note]
     }))
