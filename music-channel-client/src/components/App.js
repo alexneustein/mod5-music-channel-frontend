@@ -195,19 +195,22 @@ class App extends Component {
     for (const note of adjustedSong) {
       note[3] = note[3] - adjustStartTimeBy;
     }
+    adjustedSong.unshift([176, 64, 0, 1]) // Adds Pedal off to start of song
     this.setState({
       currentsong: adjustedSong
     }, this.adjustPedalBug)
   }
 
   adjustPedalBug = () => {
+    // console.log(midiOutput.name === 'USB2.0-MIDI Port 1');
     let adjustedSong = this.getSongFromState(this.state.currentsong)
-    for (const note of adjustedSong) {
-      if (note[0] === 144 && note[1] === 64 && note[2] === 127) {
-        note[0] = 176
+    if (this.state.midiOutput.name) {
+      for (const note of adjustedSong) {
+        if (note[0] === 144 && note[1] === 64 && note[2] === 127) {
+          note[0] = 176
+        }
       }
     }
-    adjustedSong.unshift([176, 64, 0, 1]) // Adds Pedal off to start of song
     this.setState({
       currentsong: adjustedSong,
     }, this.populateCounter)
@@ -378,7 +381,8 @@ class App extends Component {
       currentsong: convertedSongArray,
       currentsongbackup: convertedSongArray,
       isSongSaved: null,
-      isBroadcasted: false
+      isBroadcasted: false,
+      currentSongAuthor: resData.user
     }, this.populateCounter)
   }
 
@@ -543,7 +547,9 @@ class App extends Component {
               <SongTitleChange
                 currentSongTitle={this.state.currentSongTitle}
                 changeTitle={this.changeTitle}
+                currentSongAuthor={this.state.currentSongAuthor}
                 />
+
             <Divider />
               {/* SAVE BUTTON */}
               <SongSave

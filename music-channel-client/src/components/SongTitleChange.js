@@ -43,6 +43,7 @@ class SongTitleChange extends Component {
             </Segment>
           </Modal.Description>
       </Modal></h3>
+    <h5>{!!this.props.currentSongAuthor === true ? `played by ${this.props.currentSongAuthor.name_first} ${this.props.currentSongAuthor.name_last}` : ''}</h5>
           </div>
         )
       } else {
