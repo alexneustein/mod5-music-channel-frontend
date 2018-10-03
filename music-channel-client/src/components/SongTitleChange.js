@@ -14,7 +14,8 @@ class SongTitleChange extends Component {
       if (this.props.currentSongTitle !== null) {
         return (
           <div>
-            <Modal size='mini' closeOnEscape={true} closeOnDimmerClick={true} closeOnDocumentClick={true} onClose={this.close}  open={this.state.changeTitleOpen} trigger={<Button onClick={this.handleOpen} basic color='grey' >Rename</Button>}>
+            <h3>{this.props.currentSongTitle}
+            <Modal size='mini' closeOnEscape={true} closeOnDimmerClick={true} closeOnDocumentClick={true} onClose={this.close}  open={this.state.changeTitleOpen} trigger={<Button onClick={this.handleOpen} size='mini' floated='right' compact basic>Rename</Button>}>
                 <Modal.Header>Enter New Title</Modal.Header>
                   <Modal.Description>
                     <Segment vertical>
@@ -41,7 +42,7 @@ class SongTitleChange extends Component {
               </Form>
             </Segment>
           </Modal.Description>
-      </Modal>
+      </Modal></h3>
           </div>
         )
       } else {

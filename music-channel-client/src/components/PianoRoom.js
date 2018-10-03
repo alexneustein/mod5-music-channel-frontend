@@ -3,7 +3,7 @@ import { ActionCable } from 'react-actioncable-provider'
 import { WS_URL } from "./RailsURL";
 import CastSelector from "./CastSelector";
 import onairlogo from './onair.png';
-import { Image, Button, Icon, Comment, Header } from 'semantic-ui-react'
+import { Image, Confirm, Button, Icon, Comment, Header } from 'semantic-ui-react'
 
 class PianoRoom extends Component {
   state = {
@@ -12,7 +12,8 @@ class PianoRoom extends Component {
     playednotes: [],
     isPlayingCast: null,
     isReceiving: null,
-    receivingFrom: null
+    receivingFrom: null,
+    shouldPrompt: false
   }
 
   openConnection = () => {
@@ -20,6 +21,18 @@ class PianoRoom extends Component {
     // return new WebSocket("ws://10.39.104.225:3000/cable")
     // return new WebSocket("wss://flatironchatterbox-api.herokuapp.com/cable")
   }
+
+  promptShow = (e) => {
+    if (this.props.isSongSaved === false) {
+      this.setState({ shouldPrompt: true })
+    }
+    else {
+      this.props.startBroadcast()
+    }
+  }
+
+  promptConfirm = () => this.setState({ shouldPrompt: false }, () => this.props.startBroadcast())
+  promptCancel = () => this.setState({ shouldPrompt: false })
 
   onReceived = (e) => {
     // console.log('e.note.note: ', e.note.note);
@@ -46,23 +59,27 @@ class PianoRoom extends Component {
 
   saveCastToState = () => {
     let receivedBuffer = this.state.receivedBuffer
-    let newSong = []
-    const newUser = receivedBuffer[0].user
-    const newDate = new Date(receivedBuffer[0].content[3])
-    for (const note of receivedBuffer) {
-      if (note.content[0] === 1) {break;}
-      if (note.content[0] !== 0) {
-        let noteCopy = [...note.content]
-        newSong = [...newSong, noteCopy]
+    if (receivedBuffer.length > 0) {
+      let newSong = []
+      const newUser = receivedBuffer[0].user
+      const newDate = new Date(receivedBuffer[0].content[3])
+      for (const note of receivedBuffer) {
+        if (note.content[0] === 1) {break;}
+        if (note.content[0] !== 0) {
+          let noteCopy = [...note.content]
+          newSong = [...newSong, noteCopy]
+        }
+      };
+      if (newSong.length > 0) {
+        const adjustStartTimeBy = newSong[0][3] - 100;
+        for (const note of newSong) { note[3] = note[3] - adjustStartTimeBy; }
+        const newCast = {user: newUser, date: newDate, song: newSong}
+        this.setState(prevState => ({
+          receivedCasts: [newCast, ...prevState.receivedCasts],
+          receivedBuffer: []
+        }))
       }
-    };
-    const adjustStartTimeBy = newSong[0][3] - 100;
-    for (const note of newSong) { note[3] = note[3] - adjustStartTimeBy; }
-    const newCast = {user: newUser, date: newDate, song: newSong}
-    this.setState(prevState => ({
-      receivedCasts: [newCast, ...prevState.receivedCasts],
-      receivedBuffer: []
-    }))
+    }
   }
 
   playCast = () => {
@@ -79,7 +96,7 @@ class PianoRoom extends Component {
     if (this.props.isBroadcasting) {
       return (<Button basic icon labelPosition='left' onClick={this.props.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Cast</Button>)
     } else {
-      return (<Button basic icon labelPosition='left' onClick={this.props.startBroadcast}><Icon name='microphone' size='large' color='red' />Cast Live Song</Button>)
+      return (<Button basic icon labelPosition='left' onClick={this.promptShow}><Icon name='microphone' size='large' color='red' />Cast Live Song</Button>)
     }
   }
 
@@ -87,7 +104,7 @@ class PianoRoom extends Component {
     if (this.props.isBroadcasted) {
       return (<Button basic icon labelPosition='left' disabled><Icon name='checkmark' size='large' color='green' />Broadcast Complete</Button>)
     } else {
-      if (this.props.currentsong.length === 0) {
+      if ((this.props.currentsong.length === 0) || this.props.isBroadcasting) {
         return (<Button disabled basic icon labelPosition='left' onClick={this.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
       } else {
         return (<Button basic icon labelPosition='left' onClick={this.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
@@ -106,8 +123,11 @@ class PianoRoom extends Component {
   renderReceiving = () => {
     if (this.state.isReceiving) {
       return (
-        <div><Icon loading name='sync' size='large' />Receiving Cast from {this.state.receivingFrom.name_first} {this.state.receivingFrom.name_last}</div>
+        <div><Icon loading name='sync' size='large' />Receiving Cast from {this.state.receivingFrom.name_first} {this.state.receivingFrom.name_last}
+        {this.renderListenButton()}</div>
+
       )
+
     } else {
       return (<div></div>)
     }
@@ -128,12 +148,13 @@ class PianoRoom extends Component {
 
            {/* LIVE BROADCAST BUTTON */}
            <p>{this.renderLiveBroadcastButton()}</p>
+             <Confirm open={this.state.shouldPrompt} content='Proceed without saving changes?' cancelButton='No'
+             confirmButton="Yes" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
 
            {/* BROADCAST CURRENT SONG BUTTON */}
            <p>{this.renderBroadcastCurrentButton()}</p>
 
-          {/* LISTEN TO BROADCAST BUTTON */}
-          <p>{this.renderListenButton()}</p>
+
 
          </Comment.Group>
          <Comment.Group>
@@ -142,6 +163,8 @@ class PianoRoom extends Component {
            </Header>
          </Comment.Group>
          {this.renderReceiving()}
+         {/* LISTEN TO BROADCAST BUTTON */}
+
          <CastSelector
            isSongSaved={this.props.isSongSaved}
            castList={this.state.receivedCasts}

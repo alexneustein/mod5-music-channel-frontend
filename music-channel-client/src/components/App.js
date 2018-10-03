@@ -10,7 +10,7 @@ import ChatRoom from "./ChatRoom";
 import PianoRoom from "./PianoRoom";
 import { MIDIinit } from "./MIDIinit";
 import { RAILS_URL, RAILS_USER, WS_URL } from "./RailsURL";
-import { Container, Header, Segment, Grid, Confirm, Button, Icon} from 'semantic-ui-react'
+import { Container, Header, Segment, Grid, Divider, Confirm, Button, Icon} from 'semantic-ui-react'
 
 class App extends Component {
  constructor(props) {
@@ -82,6 +82,7 @@ class App extends Component {
   promptConfirm = () => this.setState({ shouldPrompt: false }, () => this.recordSong())
   promptCancel = () => this.setState({ shouldPrompt: false })
 
+
   recordSong = () => {
     this.setState({
       isRecording: true,
@@ -146,7 +147,8 @@ class App extends Component {
     this.sendNote([0,0,0,starttime])
     this.setState({
       isBroadcasting: true,
-    }, this.promptShow)
+      shouldPrompt: false
+    }, this.recordSong)
   }
 
   stopBroadcast = () => {
@@ -389,8 +391,9 @@ class App extends Component {
     this.setState({
       currentSongTitle: newTitle,
       currentSongID: null
-    }, () => this.loadSongFromCast(song.content, song.user))
+    }, () => this.loadSongFromCast(song.song, song.user))
   }
+
 
   loadSongFromCast = (songArray, user) => {
     console.log('songArray: ', songArray);
@@ -414,7 +417,7 @@ class App extends Component {
     }
     let songObj = {}
     songObj["title"] = this.state.currentSongTitle
-    songObj["user_id"] = "1"
+    songObj["user_id"] = this.state.currentSongAuthor.id
     songObj["songdata"] = songToSave
     const songJSON = JSON.stringify(songObj)
     this.setState({
@@ -529,21 +532,19 @@ class App extends Component {
             <Grid.Column width={7}>
               <Header as='h3' dividing>Song Control</Header>
               {/* RECORD BUTTON */}
-              <p>{this.state.midiInput ? (this.state.isRecording ?  <Button basic  onClick={this.stopRecord}><Icon name='stop circle' size='large' color='green' />STOP Record</Button> : <Button basic icon labelPosition='left' onClick={this.promptShow}><Icon name='circle' size='large' color='red' />RECORD NEW SONG</Button>) : ''}
+              <p>{this.state.midiInput ? (this.state.isRecording ?  (this.state.isBroadcasting ? <Button disabled basic  onClick={this.stopRecord}><Icon name='stop circle' size='large' color='green' />STOP Record</Button>  : <Button basic  onClick={this.stopRecord}><Icon name='stop circle' size='large' color='green' />STOP Record</Button> ): <Button basic icon labelPosition='left' onClick={this.promptShow}><Icon name='circle' size='large' color='red' />RECORD NEW SONG</Button>) : ''}
               <Confirm open={this.state.shouldPrompt} content='Proceed without saving changes?' cancelButton='No'
               confirmButton="Yes" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
-            {this.state.isPlaying === true ? <Button icon labelPosition='left' basic disabled><Icon name='play circle outline' size='large' color='green' />Song Is Playing</Button> : (this.state.currentsong.length > 1 ? <Button icon labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button> : '')}</p>
+            {this.state.isPlaying === true ? <Button icon labelPosition='left' basic disabled><Icon name='play circle outline' size='large' color='green' />Song Is Playing</Button> : (this.state.currentsong.length > 1 ? (this.state.isRecording ? <Button icon disabled labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button> : <Button icon labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button>) : '')}</p>
 
 
-              {/* SONG TITLE */}
-              <h3>{this.state.currentSongTitle}</h3>
-
-              {/* CHANGE TITLE BUTTON */}
+            {/* TITLE AND CHANGE TITLE BUTTON */}
+            <Divider />
               <SongTitleChange
                 currentSongTitle={this.state.currentSongTitle}
                 changeTitle={this.changeTitle}
                 />
-
+            <Divider />
               {/* SAVE BUTTON */}
               <SongSave
                 currentsonglength={this.state.currentsong.length}
@@ -584,7 +585,6 @@ class App extends Component {
                 isBroadcasting={this.state.isBroadcasting}
                 isBroadcasted={this.isBroadcasted}
                 loadSongFromCast={this.loadSongFromCast}
-                promptShow={this.promptShow}
                 stopRecord={this.stopRecord}
                 startBroadcast={this.startBroadcast}
                 stopBroadcast={this.stopBroadcast}
