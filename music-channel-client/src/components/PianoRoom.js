@@ -1,25 +1,17 @@
 import React, { Component } from "react";
 import { ActionCable } from 'react-actioncable-provider'
 import { WS_URL } from "./RailsURL";
+import CastSelector from "./CastSelector";
 import onairlogo from './onair.png';
 import { Image, Button, Icon, Comment, Header } from 'semantic-ui-react'
 
 class PianoRoom extends Component {
   state = {
-    user: {},
-    note: '',
-    song: [],
-    receivednotes: [],
+    receivedBuffer: [],
+    receivedCasts: [],
     playednotes: [],
-    adjustBy: null,
-    isBroadcasting: false,
-    isPlayingCast: null
-  }
-
-  componentDidMount() {
-        this.setState({
-          user: this.props.currentUser
-        })
+    isPlayingCast: null,
+    isReceiving: null
   }
 
   openConnection = () => {
@@ -40,118 +32,45 @@ class PianoRoom extends Component {
   }
 
   createNote = (note) => {
+    if (note.content[0] === 0) {
+      this.setState({ isReceiving: true})
+    }
+    if (note.content[0] === 1) {
+      this.setState({ isReceiving: false},this.saveCastToState)
+    }
     this.setState(prevState => ({
-      receivednotes: [...prevState.receivednotes, note]
+      receivedBuffer: [...prevState.receivedBuffer, note]
+    }))
+  }
+
+  saveCastToState = () => {
+    let receivedBuffer = this.state.receivedBuffer
+    let newSong = []
+    let newUser = this.state.receivedBuffer[0].user
+    const newDate = this.state.receivedBuffer[0].content[3]
+    console.log(newUser);
+    for (const note of receivedBuffer) {
+      if (note.content[0] === 1) {break;}
+      if (note.content[0] !== 0) {
+        let noteCopy = [...note.content]
+        newSong = [...newSong, noteCopy]
+      }
+    };
+    const adjustStartTimeBy = newSong[0][3] - 100;
+    for (const note of newSong) { note[3] = note[3] - adjustStartTimeBy; }
+    const newCast = {user: newUser, date: newDate, song: newSong}
+    this.setState(prevState => ({
+      receivedCasts: [...prevState.receivedCasts, newCast]
     }))
   }
 
   playCast = () => {
-    if (this.state.receivednotes.length > 0) {
+    if (this.state.receivedBuffer.length > 0) {
       this.setState({
         isPlayingCast: true
-      }, this.moveToCurrentSong(this.state.receivednotes))
+      }, this.moveToCurrentSong(this.state.receivedBuffer))
     }
   }
-
-  // moveToCurrentSong = (arg) => {
-  //   if (arg.length > 0) {
-  //     let currentCast = []
-  //     let currentUser
-  //     for (const note of arg) {
-  //       let noteCopy = [...note.content]
-  //       currentCast = [...currentCast, noteCopy]
-  //       currentUser = note.user
-  //       // arg.shift()
-  //     };
-  //     this.props.loadSongFromCast(currentCast, currentUser)
-  //     // return currentCast;
-  //   }
-  // }
-
-
-
-  // sendNote = (noteArray) => {
-  //   const postUser = () => {
-  //     if(this.props.currentUser.username){
-  //       return this.props.currentUser
-  //     } else {
-  //       return {username: `Anonymous`}
-  //     }
-  //   }
-  //
-  //   // if(userobject.user){
-  //   //   this.refs.PianoChannel.perform('onPlay', {userobject})
-  //   // } else {
-  //     const postNote = noteArray
-  //     const note = {user: postUser(), content: postNote}
-  //     this.refs.PianoChannel.perform('onPlay', {note})
-  //     this.setState({note: ''})
-  //   // }
-  // }
-
-  // handleInput = (event) => {
-  //   let noteArray = event
-  //   // if (this.state.adjustBy === null) {
-  //   //   let adjustStartTimeBy = noteArray[3] - 2
-  //   //   this.setState({
-  //   //     adjustBy: adjustStartTimeBy
-  //   //   }, () => this.notesToState(noteArray))
-  //   // } else {
-  //     this.notesToState(noteArray)
-  //   // }
-  // }
-  //
-  // notesToState = (noteArray) => {
-  //   // noteArray[3] = noteArray[3] - this.state.adjustBy;
-  //   if (noteArray[0] === 144 && noteArray[1] === 64 && noteArray[2] === 127) {
-  //     noteArray[0] = 176
-  //   }
-  //   console.log('notes to state: ', noteArray);
-  //   this.setState({
-  //     song: [...this.state.song, noteArray],
-  //     note: noteArray
-  //   }, this.sendNote(noteArray))
-  // }
-
-  // stopBroadcast = () => {
-  //   this.setState({
-  //     isBroadcasting: false
-  //   }, this.props.stopRecord)
-  // }
-
-  // startBroadcast = () => {
-  //   this.setState({
-  //     isBroadcasting: true,
-  //   }, this.props.promptShow)
-  //   // const inputdevice = this.props.midiInput
-  //   // inputdevice.onmidimessage = (message) => {
-  //   //   if (this.state.isBroadcasting) {
-  //   //     switch (message.data[0]) {
-  //   //       case 144:
-  //   //         let noteArray = [144, message.data[1], message.data[2], Math.round(message.timeStamp)]
-  //   //         this.handleInput(noteArray)
-  //   //         break;
-  //   //       case 128:
-  //   //         let noteOffArray = [128, message.data[1], message.data[2], Math.round(message.timeStamp)]
-  //   //         this.handleInput(noteOffArray)
-  //   //         break;
-  //   //       case 176:
-  //   //         let pedalArray = [176, message.data[1], message.data[2], Math.round(message.timeStamp)]
-  //   //         console.log('PEDAL: ', pedalArray);
-  //   //         this.handleInput(pedalArray)
-  //   //         break;
-  //   //       case 254:
-  //   //         break;
-  //   //       case 248:
-  //   //         break;
-  //   //       default:
-  //   //         console.log('Command: ', message.data[0]);
-  //   //         break;
-  //   //     }
-  //   //   }
-  //   // }
-  // }
-
 
   // BUTTON RENDERERS
 
@@ -183,6 +102,16 @@ class PianoRoom extends Component {
     }
   }
 
+  renderReceiving = () => {
+    if (this.state.isReceiving) {
+      return (
+        <div><Icon loading name='sync' size='large' />Cast In Progress</div>
+      )
+    } else {
+      return (<div></div>)
+    }
+  }
+
   render() {
       return (
         <div>
@@ -211,6 +140,12 @@ class PianoRoom extends Component {
              Received Casts
            </Header>
          </Comment.Group>
+         {this.renderReceiving()}
+         <CastSelector
+           isSongSaved={this.props.isSongSaved}
+           castList={this.state.receivedCasts}
+           handleCast={this.props.handleCast}
+           />
         </div>
       )
   }

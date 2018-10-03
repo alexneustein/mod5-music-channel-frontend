@@ -10,7 +10,7 @@ import ChatRoom from "./ChatRoom";
 import PianoRoom from "./PianoRoom";
 import { MIDIinit } from "./MIDIinit";
 import { RAILS_URL, RAILS_USER, WS_URL } from "./RailsURL";
-import { Container, Segment, Grid, Confirm, Button, Icon, Divider} from 'semantic-ui-react'
+import { Container, Header, Segment, Grid, Confirm, Button, Icon} from 'semantic-ui-react'
 
 class App extends Component {
  constructor(props) {
@@ -414,6 +414,10 @@ class App extends Component {
     }, () => this.fetchSong())
   }
 
+  handleCast = (song) => {
+    console.log('SONG LOADED!');
+  }
+
   fetchSong = () => {
     const fetchPath = `${RAILS_URL}/songs/${this.state.currentSongID}`
     fetch(fetchPath)
@@ -482,8 +486,9 @@ class App extends Component {
         </Segment>
         <Segment vertical>
           <Grid divided>
-            <Grid.Column width={4}>
+            <Grid.Column width={3}>
               {/* FETCH SAVED SONGS */}
+              <Header as='h3' dividing>Saved Songs</Header>
               <p>{this.state.midiOutput ? <Button basic labelPosition='left' icon onClick={this.fetchSongList}><Icon name='folder open' size='large' color='blue' />Open Saved Songs</Button> : '' }</p>
               {/* SONG LIST COMPONENT */}
               <Container>
@@ -494,7 +499,8 @@ class App extends Component {
                 />
               </Container>
             </Grid.Column>
-            <Grid.Column width={8}>
+            <Grid.Column width={7}>
+              <Header as='h3' dividing>Song Control</Header>
               {/* RECORD BUTTON */}
               <p>{this.state.midiInput ? (this.state.isRecording ?  <Button basic  onClick={this.stopRecord}><Icon name='stop circle' size='large' color='green' />STOP Record</Button> : <Button basic icon labelPosition='left' onClick={this.promptShow}><Icon name='circle' size='large' color='red' />RECORD NEW SONG</Button>) : ''}
               <Confirm open={this.state.shouldPrompt} content='Proceed without saving changes?' cancelButton='No'
@@ -536,10 +542,7 @@ class App extends Component {
                 />
 
             </Grid.Column>
-            <Grid.Column width={4}>
-              {/* CHAT ROOM */}
-              <ChatRoom currentUser={this.state.currentUser}/>
-              <Divider />
+              <Grid.Column width={3}>
               {/* PIANO ROOM */}
               <ActionCable
                 ref='PianoChannel'
@@ -558,8 +561,15 @@ class App extends Component {
                 stopRecord={this.stopRecord}
                 startBroadcast={this.startBroadcast}
                 stopBroadcast={this.stopBroadcast}
+                getSongFromState={this.getSongFromState}
+                handleCast={this.handleCast}
+                isSongSaved={this.state.isSongSaved}
                 />}
             </Grid.Column>
+            <Grid.Column width={3}>
+              {/* CHAT ROOM */}
+              <ChatRoom currentUser={this.state.currentUser}/>
+              </Grid.Column>
           </Grid>
         </Segment>
 
