@@ -48,7 +48,7 @@ class App extends Component {
         midiInput: MIDIinit.midiInput,
         midiOutput: MIDIinit.midiOutput,
         midiSuccess: MIDIinit.midiSuccess
-      }, () => {this.startChime()});
+      });
     }, 1000)
   }
 
