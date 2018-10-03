@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { ActionCable } from 'react-actioncable-provider'
-import { RAILS_URL, RAILS_USER, WS_URL } from "./RailsURL";
-import MessagesContainer from './MessagesContainer'
-import { Button, Icon, Comment, Header } from 'semantic-ui-react'
+import { WS_URL } from "./RailsURL";
+import onairlogo from './onair.png';
+import { Image, Button, Icon, Comment, Header } from 'semantic-ui-react'
 
 class PianoRoom extends Component {
   state = {
@@ -10,6 +10,7 @@ class PianoRoom extends Component {
     note: '',
     song: [],
     receivednotes: [],
+    playednotes: [],
     adjustBy: null,
     isBroadcasting: false,
     isPlayingCast: null
@@ -37,22 +38,26 @@ class PianoRoom extends Component {
   }
 
   playCast = () => {
-    this.setState({
-      isPlayingCast: true
-    }, this.moveToCurrentSong(this.state.receivednotes))
+    if (this.state.receivednotes.length > 0) {
+      this.setState({
+        isPlayingCast: true
+      }, this.moveToCurrentSong(this.state.receivednotes))
+    } 
   }
 
   moveToCurrentSong = (arg) => {
-    let currentCast = []
-    let currentUser
-    for (const note of arg) {
-      let noteCopy = [...note.content]
-      currentCast = [...currentCast, noteCopy]
-      currentUser = note.user
-      // arg.shift()
-    };
-    this.props.loadSongFromCast(currentCast, currentUser)
-    // return currentCast;
+    if (arg.length > 0) {
+      let currentCast = []
+      let currentUser
+      for (const note of arg) {
+        let noteCopy = [...note.content]
+        currentCast = [...currentCast, noteCopy]
+        currentUser = note.user
+        // arg.shift()
+      };
+      this.props.loadSongFromCast(currentCast, currentUser)
+      // return currentCast;
+    }
   }
 
   createNote = (note) => {
@@ -104,44 +109,44 @@ class PianoRoom extends Component {
     }, this.sendNote(noteArray))
   }
 
-  stopBroadcast = () => {
-    this.setState({
-      isBroadcasting: false
-    })
-  }
+  // stopBroadcast = () => {
+  //   this.setState({
+  //     isBroadcasting: false
+  //   }, this.props.stopRecord)
+  // }
 
-  startBroadcast = () => {
-    this.setState({
-      isBroadcasting: true,
-    })
-    const inputdevice = this.props.midiInput
-    inputdevice.onmidimessage = (message) => {
-      if (this.state.isBroadcasting) {
-        switch (message.data[0]) {
-          case 144:
-            let noteArray = [144, message.data[1], message.data[2], Math.round(message.timeStamp)]
-            this.handleInput(noteArray)
-            break;
-          case 128:
-            let noteOffArray = [128, message.data[1], message.data[2], Math.round(message.timeStamp)]
-            this.handleInput(noteOffArray)
-            break;
-          case 176:
-            let pedalArray = [176, message.data[1], message.data[2], Math.round(message.timeStamp)]
-            console.log('PEDAL: ', pedalArray);
-            this.handleInput(pedalArray)
-            break;
-          case 254:
-            break;
-          case 248:
-            break;
-          default:
-            console.log('Command: ', message.data[0]);
-            break;
-        }
-      }
-    }
-  }
+  // startBroadcast = () => {
+  //   this.setState({
+  //     isBroadcasting: true,
+  //   }, this.props.promptShow)
+  //   // const inputdevice = this.props.midiInput
+  //   // inputdevice.onmidimessage = (message) => {
+  //   //   if (this.state.isBroadcasting) {
+  //   //     switch (message.data[0]) {
+  //   //       case 144:
+  //   //         let noteArray = [144, message.data[1], message.data[2], Math.round(message.timeStamp)]
+  //   //         this.handleInput(noteArray)
+  //   //         break;
+  //   //       case 128:
+  //   //         let noteOffArray = [128, message.data[1], message.data[2], Math.round(message.timeStamp)]
+  //   //         this.handleInput(noteOffArray)
+  //   //         break;
+  //   //       case 176:
+  //   //         let pedalArray = [176, message.data[1], message.data[2], Math.round(message.timeStamp)]
+  //   //         console.log('PEDAL: ', pedalArray);
+  //   //         this.handleInput(pedalArray)
+  //   //         break;
+  //   //       case 254:
+  //   //         break;
+  //   //       case 248:
+  //   //         break;
+  //   //       default:
+  //   //         console.log('Command: ', message.data[0]);
+  //   //         break;
+  //   //     }
+  //   //   }
+  //   // }
+  // }
 
   broadcastCurrentSong = () => {
 
@@ -150,7 +155,11 @@ class PianoRoom extends Component {
   // BUTTON RENDERERS
 
   renderLiveBroadcastButton = () => {
-
+    if (this.props.isBroadcasting) {
+      return (<Button basic icon labelPosition='left' onClick={this.props.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Cast</Button>)
+    } else {
+      return (<Button basic icon labelPosition='left' onClick={this.props.startBroadcast}><Icon name='microphone' size='large' color='red' />Cast Live Song</Button>)
+    }
   }
 
   renderBroadcastCurrentButton = () => {
@@ -165,6 +174,13 @@ class PianoRoom extends Component {
     }
   }
 
+  renderListenButton = () => {
+    if (this.state.isPlayingCast) {
+      return (<Button basic icon labelPosition='left' onClick={this.hearBroadcast}><Icon name='bell slash' size='large' color='orange' />Mute Broadcast</Button>)
+    } else {
+      return (<Button basic icon labelPosition='left' onClick={this.playCast}><Icon name='headphones' size='large' color='teal' />Listen to Cast</Button>)
+    }
+  }
 
   render() {
       return (
@@ -176,17 +192,17 @@ class PianoRoom extends Component {
            />
          <Comment.Group>
            <Header as='h3' dividing>
-             Broadcast
+             Broadcast {this.props.isBroadcasting ? <Image src={onairlogo} size="big" spaced alt="ON AIR"/> : ''}
            </Header>
-           {/* LIVE BROADCAST BUTTON */}
 
-           <p>{this.state.isBroadcasting ? <Button basic icon labelPosition='left' onClick={this.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Cast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='microphone' size='large' color='red' />Cast Live Song</Button>}</p>
+           {/* LIVE BROADCAST BUTTON */}
+           <p>{this.renderLiveBroadcastButton()}</p>
 
            {/* BROADCAST CURRENT SONG BUTTON */}
            <p>{this.renderBroadcastCurrentButton()}</p>
 
           {/* LISTEN TO BROADCAST BUTTON */}
-           <p>{this.state.isPlayingCast ? <Button basic icon labelPosition='left' onClick={this.hearBroadcast}><Icon name='bell slash' size='large' color='orange' />Mute Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.playCast}><Icon name='headphones' size='large' color='teal' />Play PianoCast</Button>}</p>
+          <p>{this.renderListenButton()}</p>
 
 
          </Comment.Group>

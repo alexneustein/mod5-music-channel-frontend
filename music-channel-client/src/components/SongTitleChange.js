@@ -14,7 +14,7 @@ class SongTitleChange extends Component {
       if (this.props.currentSongTitle !== null) {
         return (
           <div>
-            <Modal size='mini' closeOnEscape={true} closeOnDimmerClick={true} closeOnDocumentClick={true} onClose={this.close}  open={this.state.changeTitleOpen} trigger={<Button onClick={this.handleOpen} basic color='grey' basic size='mini' >Rename</Button>}>
+            <Modal size='mini' closeOnEscape={true} closeOnDimmerClick={true} closeOnDocumentClick={true} onClose={this.close}  open={this.state.changeTitleOpen} trigger={<Button onClick={this.handleOpen} basic color='grey' >Rename</Button>}>
                 <Modal.Header>Enter New Title</Modal.Header>
                   <Modal.Description>
                     <Segment vertical>

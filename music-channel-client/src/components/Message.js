@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Comment, Form } from 'semantic-ui-react'
+import { Comment } from 'semantic-ui-react'
 
 const Message = (props) => {
     return (

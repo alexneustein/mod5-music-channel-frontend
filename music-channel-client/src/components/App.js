@@ -25,6 +25,7 @@ class App extends Component {
      currentsong: [],
      currentSongDuration: null,
      currentSongAuthor: null,
+     isBroadcasting: null,
      isBroadcasted: null,
      isSongSaved: null,
      midiStatus: null,
@@ -77,7 +78,7 @@ class App extends Component {
   recordSong = () => {
     this.setState({
       isRecording: true,
-      currentsong: [[176, 64, 0, 1]],
+      currentsong: [],
       currentsongbackup: [],
       currentSongID: null,
       currentSongTitle: null
@@ -88,17 +89,22 @@ class App extends Component {
         switch (message.data[0]) {
           case 144:
             let noteArray = [144, message.data[1], message.data[2], Math.round(message.timeStamp)]
-            console.log(noteArray);
             this.setState({
               currentsong: [...this.state.currentsong, noteArray]
-            })
+            }, () => {if (this.state.isBroadcasting) {console.log('broadcast: ',noteArray);}})
+            break;
+          case 128:
+            let noteOffArray = [128, message.data[1], message.data[2], Math.round(message.timeStamp)]
+            this.setState({
+              currentsong: [...this.state.currentsong, noteOffArray]
+            }, () => {if (this.state.isBroadcasting) {console.log('broadcast: ',noteOffArray);}})
             break;
           case 176:
             let pedalArray = [176, message.data[1], message.data[2], Math.round(message.timeStamp)]
             console.log('PEDAL: ', pedalArray);
             this.setState({
               currentsong: [...this.state.currentsong, pedalArray]
-            })
+            }, () => {if (this.state.isBroadcasting) {console.log('broadcast: ',pedalArray);}})
             break;
           case 254:
             break;
@@ -126,7 +132,18 @@ class App extends Component {
     }
   }
 
+  startBroadcast = () => {
+    this.setState({
+      isBroadcasting: true,
+    }, this.promptShow)
+  }
 
+  stopBroadcast = () => {
+    this.setState({
+      isBroadcasting: false,
+      isBroadcasted: true
+    }, this.stopRecord)
+  }
 
   getSongFromState = (arg) => {
     let adjustedSong = []
@@ -359,7 +376,7 @@ class App extends Component {
   }
 
   handleSelect = (song_id) => {
-    const selectedSong = this.state.savedsongs.find(song => song.id === parseInt(song_id))
+    const selectedSong = this.state.savedsongs.find(song => song.id === parseInt(song_id, 10))
     this.setState({
       currentSongID: selectedSong.id,
       currentSongTitle: selectedSong.title
@@ -448,7 +465,7 @@ class App extends Component {
             </Grid.Column>
             <Grid.Column width={8}>
               {/* RECORD BUTTON */}
-              <p>{this.state.midiInput ? (this.state.isRecording ? <Button basic  onClick={this.stopRecord}><Icon name='stop circle' size='large' color='green' />STOP Record</Button> : <Button basic icon labelPosition='left' onClick={this.promptShow}><Icon name='circle' size='large' color='red' />RECORD NEW SONG</Button>) : ''}
+              <p>{this.state.midiInput ? (this.state.isRecording ?  <Button basic  onClick={this.stopRecord}><Icon name='stop circle' size='large' color='green' />STOP Record</Button> : <Button basic icon labelPosition='left' onClick={this.promptShow}><Icon name='circle' size='large' color='red' />RECORD NEW SONG</Button>) : ''}
               <Confirm open={this.state.shouldPrompt} content='Proceed without saving changes?' cancelButton='No'
               confirmButton="Yes" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
             {this.state.isPlaying === true ? <Button icon labelPosition='left' basic disabled><Icon name='play circle outline' size='large' color='green' />Song Is Playing</Button> : (this.state.currentsong.length > 1 ? <Button icon labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button> : '')}</p>
@@ -498,8 +515,13 @@ class App extends Component {
                 currentUser={this.state.currentUser}
                 midiInput={this.state.midiInput}
                 isPlaying={this.state.isPlaying}
-                loadSongFromCast={this.loadSongFromCast}
+                isBroadcasting={this.state.isBroadcasting}
                 isBroadcasted={this.isBroadcasted}
+                loadSongFromCast={this.loadSongFromCast}
+                promptShow={this.promptShow}
+                stopRecord={this.stopRecord}
+                startBroadcast={this.startBroadcast}
+                stopBroadcast={this.stopBroadcast}
                 />}
             </Grid.Column>
           </Grid>

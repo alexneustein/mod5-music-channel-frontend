@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 import { Button, Menu, Header, Icon, Segment } from 'semantic-ui-react'
-import pianoimage from './piano.jpg';
-
-var sectionStyle = {
-  backgroundImage: `url(${pianoimage})`
-};
+// import pianoimage from './piano.jpg';
 
 class Navbar extends Component {
 
@@ -12,16 +8,12 @@ class Navbar extends Component {
     switch (this.props.midiStatus) {
       case 'Piano Ready':
         return (<Icon color='green' name='checkmark' size='small' />)
-        break;
       case 'MIDI Failure':
         return (<Icon color='red' name='exclamation circle' size='small' />)
-        break;
       case ('Piano Not Found' || 'Piano Input Not Working' || 'Piano Output Not Working'):
         return (<Icon color='orange' name='exclamation triangle' size='small' />)
-        break;
       default:
         return (<Icon color='violet' loading name='sync' size='small' />)
-        break;
     }
   }
 

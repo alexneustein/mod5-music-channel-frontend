@@ -14,7 +14,7 @@ class SongController extends Component {
     }
   }
 
-
+// percent={counterObj.percent}
 
 
   render() {
@@ -30,12 +30,12 @@ class SongController extends Component {
         <Segment>
           {this.loaderLogic()}
           <Divider />
-          <Progress percent={this.props.counterObj.percent} value={this.props.counterObj.currenttext} total={this.props.counterObj.totaltext} progress='ratio' indicating />
-          
-          <p><Button attached='left' basic onClick={this.props.makeLouder}><Icon name='volume up' size='small' color='grey' />MAKE LOUDER</Button>      <Button attached='right' basic onClick={this.props.makeSofter}><Icon name='volume down' size='small' color='grey' />Make softer</Button></p>
-          <p><Button basic onClick={() => this.props.changeTempo(.77)}>Play Faster</Button>      <Button basic onClick={() => this.props.changeTempo(1.3)}>Play Slower</Button></p>
-          <p><Button basic onClick={() => this.props.transposeSong(1)}>Transpose Up</Button>      <Button basic onClick={() => this.props.transposeSong(-1)}>Transpose Down</Button></p>
-          <p><Button basic onClick={this.props.resetSong}>Undo All Changes</Button></p>
+          <Progress progress='ratio' value={counterObj.currenttext} total={counterObj.totaltext} indicating />
+
+          <Segment vertical><Button attached='left' basic onClick={this.props.makeLouder}><Icon name='volume up' size='small' color='grey' />MAKE LOUDER</Button>      <Button attached='right' basic onClick={this.props.makeSofter}><Icon name='volume down' size='small' color='grey' />Make softer</Button></Segment>
+          <Segment vertical><Button basic onClick={() => this.props.changeTempo(.77)}>Play Faster</Button>      <Button basic onClick={() => this.props.changeTempo(1.3)}>Play Slower</Button></Segment>
+          <Segment vertical><Button basic onClick={() => this.props.transposeSong(1)}>Transpose Up</Button>      <Button basic onClick={() => this.props.transposeSong(-1)}>Transpose Down</Button></Segment>
+          <Segment vertical><Button basic onClick={this.props.resetSong}>Undo All Changes</Button></Segment>
         </Segment>
       )
     } else {

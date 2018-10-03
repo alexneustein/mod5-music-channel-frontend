@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { ActionCable } from 'react-actioncable-provider'
-import { RAILS_URL, RAILS_USER, WS_URL } from "./RailsURL";
+import { RAILS_URL, WS_URL } from "./RailsURL";
 import MessagesContainer from './MessagesContainer'
 
 
@@ -54,7 +54,6 @@ class ChatRoom extends Component {
         return {username: `Anonymous`}
       }
     }
-    console.log('userobject.user: ',userobject.user);
 
     if(userobject.user){
       this.refs.RoomChannel.perform('onChat', {userobject})
@@ -68,11 +67,7 @@ class ChatRoom extends Component {
   }
 
   handleInput = (event) => {
-    console.log('event: ',event)
-    console.log('event.type: ',event.type)
-    console.log('event.target: ',event.target)
-    console.log('event.target.value: ',event.target.value)
-      if(event.keyCode == 13){
+      if(event.keyCode === 13){
         this.sendMessage()
       }
       if(event.message){
