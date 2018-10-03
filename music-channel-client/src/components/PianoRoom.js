@@ -29,8 +29,8 @@ class PianoRoom extends Component {
   }
 
   onReceived = (e) => {
-    if (this.props.currentUser.username !== note.user.username) {
-      console.log('e.note.note: ', e.note.note);
+    console.log('e.note.note: ', e.note.note);
+    if (this.props.currentUser.username !== e.note.note.user.username) {
       if(e.note.note){
         this.createNote(e.note.note)
       } else {
@@ -39,18 +39,18 @@ class PianoRoom extends Component {
     }
   }
 
+  createNote = (note) => {
+    this.setState(prevState => ({
+      receivednotes: [...prevState.receivednotes, note]
+    }))
+  }
+
   playCast = () => {
     if (this.state.receivednotes.length > 0) {
       this.setState({
         isPlayingCast: true
       }, this.moveToCurrentSong(this.state.receivednotes))
     }
-  }
-
-  createNote = (note) => {
-    this.setState(prevState => ({
-      receivednotes: [...prevState.receivednotes, note]
-    }))
   }
 
   // moveToCurrentSong = (arg) => {
