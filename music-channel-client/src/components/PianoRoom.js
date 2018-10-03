@@ -39,11 +39,19 @@ class PianoRoom extends Component {
   playCast = () => {
     this.setState({
       isPlayingCast: true
-    }, this.moveToCurrentSong())
+    }, this.moveToCurrentSong(this.state.receivednotes))
   }
 
-  moveToCurrentSong = () => {
-    console.log('hi!');
+  moveToCurrentSong = (arg) => {
+    let currentCast = []
+    let currentUser
+    for (const note of arg) {
+      let noteCopy = [...note.content]
+      currentCast = [...currentCast, noteCopy]
+      currentUser = note.user
+    };
+    this.props.loadSongFromCast(currentCast, currentUser)
+    // return currentCast;
   }
 
   createNote = (note) => {
@@ -150,7 +158,7 @@ class PianoRoom extends Component {
              Broadcast
            </Header>
            <p>{this.state.isBroadcasting ? <Button basic icon labelPosition='left' onClick={this.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='microphone' size='large' color='red' />Broadcast Song</Button>}</p>
-           <p>{this.state.isPlayingCast ? <Button basic icon labelPosition='left' onClick={this.hearBroadcast}><Icon name='bell slash' size='large' color='orange' />Mute Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='headphones' size='large' color='teal' />Play PianoCast</Button>}</p>
+           <p>{this.state.isPlayingCast ? <Button basic icon labelPosition='left' onClick={this.hearBroadcast}><Icon name='bell slash' size='large' color='orange' />Mute Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.playCast}><Icon name='headphones' size='large' color='teal' />Play PianoCast</Button>}</p>
          </Comment.Group>
         </div>
       )

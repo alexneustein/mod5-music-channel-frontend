@@ -24,6 +24,7 @@ class App extends Component {
      currentsongbackup: [],
      currentsong: [[176, 64, 0, 1]],
      currentSongDuration: null,
+     currentSongAuthor: null,
      isSongSaved: null,
      midiStatus: null,
      midiInput: null,
@@ -124,7 +125,7 @@ class App extends Component {
     }
   }
 
-  
+
 
   getSongFromState = (arg) => {
     let adjustedSong = []
@@ -156,7 +157,6 @@ class App extends Component {
     }
     this.setState({
       currentsong: adjustedSong,
-      currentsongbackup: adjustedSong
     }, this.populateCounter)
   }
 
@@ -311,6 +311,11 @@ class App extends Component {
 
   saveSong = (arg) => {
     let songToSave = this.getSongFromState(this.state.currentsong)
+    if (this.state.currentSongAuthor === null) {
+      this.setState({
+        currentSongAuthor: this.state.currentUser
+      })
+    }
     let songObj = {}
     songObj["title"] = this.state.currentSongTitle
     songObj["user_id"] = "1"
@@ -378,6 +383,17 @@ class App extends Component {
       currentsongbackup: convertedSongArray,
       isSongSaved: null,
     }, this.populateCounter)
+  }
+
+  loadSongFromCast = (songArray, user) => {
+    console.log('songArray: ', songArray);
+    console.log('user: ', user);
+    this.setState({
+      currentsong: songArray,
+      currentsongbackup: songArray,
+      isSongSaved: null,
+      currentSongAuthor: user
+    })
   }
 
   populateCounter = () => {
@@ -474,7 +490,7 @@ class App extends Component {
               <ChatRoom currentUser={this.state.currentUser}/>
               <Divider />
               {/* PIANO ROOM */}
-              {<PianoRoom currentsong={this.state.currentsong} currentUser={this.state.currentUser} midiInput={this.state.midiInput} isPlaying={this.state.isPlaying}/>}
+              {<PianoRoom currentsong={this.state.currentsong} currentUser={this.state.currentUser} midiInput={this.state.midiInput} isPlaying={this.state.isPlaying} loadSongFromCast={this.loadSongFromCast}/>}
             </Grid.Column>
           </Grid>
         </Segment>
