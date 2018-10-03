@@ -10,7 +10,8 @@ class PianoRoom extends Component {
     note: '',
     song: [],
     receivednotes: [],
-    adjustBy: null
+    adjustBy: null,
+    isBroadcasting: false
   }
 
   componentDidMount() {
@@ -36,7 +37,7 @@ class PianoRoom extends Component {
   }
 
   createNote = (note) => {
-    console.log(note);
+    console.log('note: ',note);
     this.setState(prevState => ({
       receivednotes: [...prevState.receivednotes, note]
     }))
@@ -86,6 +87,11 @@ class PianoRoom extends Component {
     }, this.sendNote(noteArray))
   }
 
+  stopBroadcast = () => {
+    this.setState({
+      isBroadcasting: false
+    })
+  }
 
   startBroadcast = () => {
     this.setState({
@@ -135,7 +141,7 @@ class PianoRoom extends Component {
            <Header as='h3' dividing>
              Broadcast
            </Header>
-           <p>{this.state.midiInput ? <Button basic  onClick={this.stopBroadcast}><Icon name='stop circle' size='large' color='green' />STOP Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='circle' size='large' color='red' />BROADCAST NEW SONG</Button>}</p>
+           <p>{this.state.isBroadcasting ? <Button basic  onClick={this.stopBroadcast}><Icon name='stop circle' size='large' color='green' />STOP Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='circle' size='large' color='red' />BROADCAST NEW SONG</Button>}</p>
          </Comment.Group>
         </div>
       )
