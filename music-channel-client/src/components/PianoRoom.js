@@ -11,7 +11,8 @@ class PianoRoom extends Component {
     song: [],
     receivednotes: [],
     adjustBy: null,
-    isBroadcasting: false
+    isBroadcasting: false,
+    isPlayingCast: null
   }
 
   componentDidMount() {
@@ -28,7 +29,6 @@ class PianoRoom extends Component {
 
   onReceived = (e) => {
     // console.log('e.note.note: ', e.note.note);
-
     if(e.note.note){
       this.createNote(e.note.note)
     } else {
@@ -37,13 +37,12 @@ class PianoRoom extends Component {
   }
 
   createNote = (note) => {
-    console.log('note: ',note);
     this.setState(prevState => ({
       receivednotes: [...prevState.receivednotes, note]
     }))
   }
 
-  sendNote = (userobject) => {
+  sendNote = (noteArray) => {
     const postUser = () => {
       if(this.props.currentUser.username){
         return this.props.currentUser
@@ -51,16 +50,15 @@ class PianoRoom extends Component {
         return {username: `Anonymous`}
       }
     }
-    console.log('userobject.user: ',userobject.user);
 
-    if(userobject.user){
-      this.refs.PianoChannel.perform('onPlay', {userobject})
-    } else {
-      const postNote = this.state.note
+    // if(userobject.user){
+    //   this.refs.PianoChannel.perform('onPlay', {userobject})
+    // } else {
+      const postNote = noteArray
       const note = {user: postUser(), content: postNote}
       this.refs.PianoChannel.perform('onPlay', {note})
       this.setState({note: ''})
-    }
+    // }
   }
 
   handleInput = (event) => {
@@ -141,7 +139,8 @@ class PianoRoom extends Component {
            <Header as='h3' dividing>
              Broadcast
            </Header>
-           <p>{this.state.isBroadcasting ? <Button basic  onClick={this.stopBroadcast}><Icon name='stop circle' size='large' color='green' />STOP Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='circle' size='large' color='red' />BROADCAST NEW SONG</Button>}</p>
+           <p>{this.state.isBroadcasting ? <Button basic  onClick={this.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='microphone' size='large' color='red' />Broadcast Song</Button>}</p>
+           <p>{this.state.isPlayingCast ? <Button basic  onClick={this.hearBroadcast}><Icon name='bell slash' size='large' color='orange' />Mute Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='headphones' size='large' color='teal' />Play PianoCast</Button>}</p>
          </Comment.Group>
         </div>
       )
