@@ -7,7 +7,7 @@ class SongController extends Component {
   loaderLogic = () => {
     if (this.props.isRecording) {
       return (
-          <Dimmer inline active>
+          <Dimmer active>
             <Loader color='red' inline indeterminate>Recording MIDI</Loader>
           </Dimmer>
       )
