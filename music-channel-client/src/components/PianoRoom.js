@@ -81,18 +81,18 @@ class PianoRoom extends Component {
 
   handleInput = (event) => {
     let noteArray = event
-    if (this.state.adjustBy === null) {
-      let adjustStartTimeBy = noteArray[3] - 2
-      this.setState({
-        adjustBy: adjustStartTimeBy
-      }, () => this.notesToState(noteArray))
-    } else {
+    // if (this.state.adjustBy === null) {
+    //   let adjustStartTimeBy = noteArray[3] - 2
+    //   this.setState({
+    //     adjustBy: adjustStartTimeBy
+    //   }, () => this.notesToState(noteArray))
+    // } else {
       this.notesToState(noteArray)
-    }
+    // }
   }
 
   notesToState = (noteArray) => {
-    noteArray[3] = noteArray[3] - this.state.adjustBy;
+    // noteArray[3] = noteArray[3] - this.state.adjustBy;
     if (noteArray[0] === 144 && noteArray[1] === 64 && noteArray[2] === 127) {
       noteArray[0] = 176
     }
