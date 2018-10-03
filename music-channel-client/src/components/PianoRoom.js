@@ -139,8 +139,8 @@ class PianoRoom extends Component {
            <Header as='h3' dividing>
              Broadcast
            </Header>
-           <p>{this.state.isBroadcasting ? <Button basic labelPosition='left' onClick={this.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='microphone' size='large' color='red' />Broadcast Song</Button>}</p>
-           <p>{this.state.isPlayingCast ? <Button basic  onClick={this.hearBroadcast}><Icon name='bell slash' size='large' color='orange' />Mute Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='headphones' size='large' color='teal' />Play PianoCast</Button>}</p>
+           <p>{this.state.isBroadcasting ? <Button basic icon labelPosition='left' onClick={this.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='microphone' size='large' color='red' />Broadcast Song</Button>}</p>
+           <p>{this.state.isPlayingCast ? <Button basic icon labelPosition='left' onClick={this.hearBroadcast}><Icon name='bell slash' size='large' color='orange' />Mute Broadcast</Button> : <Button basic icon labelPosition='left' onClick={this.startBroadcast}><Icon name='headphones' size='large' color='teal' />Play PianoCast</Button>}</p>
          </Comment.Group>
         </div>
       )
