@@ -38,7 +38,8 @@ class App extends Component {
      shouldPrompt: false,
      songsLoading: false,
      currentUser: {},
-     counterObj: { playprogress: null, total: null, percent: 0, currenttext: "0:00", totaltext: "0:00" }
+     playingSongQueue: 0,
+     counterObj: { playprogress: null, total: null, percent: 0, currenttext: "0:00", totaltext: "0:00", remaining: 0 }
    }
  }
 
@@ -178,6 +179,31 @@ class App extends Component {
       // this.setState({note: ''})
   }
 
+  broadcastCurrentSong = () => {
+    let songToCast = this.getSongFromState(this.state.currentsong)
+    this.setState({
+      isBroadcasting: true,
+      shouldPrompt: false
+    }, () => {
+      const starttime = new Date();
+      this.sendNote([0,0,0,starttime])
+      for (const note of songToCast) {
+        this.sendNote( [ note[0], note[1], note[2] ], note[3] );
+      }
+    })
+
+    this.setState({
+      isBroadcasting: false,
+      isBroadcasted: true
+    }, () => { const endtime = new Date(); this.sendNote([1,1,1,endtime])})
+
+
+
+
+  }
+
+
+
   getSongFromState = (arg) => {
     let adjustedSong = []
     for (const note of arg) {
@@ -289,21 +315,25 @@ class App extends Component {
   playSong = () => {
     if (this.state.isPlaying === false) {
       let theSong = this.getSongFromState(this.state.currentsong)
+      const newQueue = this.state.playingSongQueue + this.state.counterObj.remaining
       this.setState({
         isPlaying: true,
-        counterObj: {...this.state.counterObj, playprogress: 0}
+        counterObj: {...this.state.counterObj, playprogress: 0},
+        playingSongQueue: newQueue
       }, () => {
         const outputdevice = this.state.midiOutput
         const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 500
+        const playingSongQueue = this.state.playingSongQueue
         for (const note of theSong) {
-          outputdevice.send( [ note[0], note[1], note[2] ], msSinceLoad+note[3] );
+          outputdevice.send( [ note[0], note[1], note[2] ], msSinceLoad+playingSongQueue+note[3] );
         }
       })
       const theduration = this.state.currentSongDuration;
       this.startCounter()
       window.setTimeout(() => {
         this.setState({
-          isPlaying: false
+          isPlaying: false,
+          playingSongQueue: 0
         })
       }, theduration)
     }
@@ -335,7 +365,8 @@ class App extends Component {
     const selectedSong = this.state.savedsongs.find(song => song.id === parseInt(song_id, 10))
     this.setState({
       currentSongID: selectedSong.id,
-      currentSongTitle: selectedSong.title
+      currentSongTitle: selectedSong.title,
+      counterObj: { playprogress: null, total: null, percent: 0, currenttext: "0:00", totaltext: "0:00", remaining: 0 }
     }, () => this.fetchSong())
   }
 
@@ -423,8 +454,11 @@ class App extends Component {
 
   // DELETE SONG
 
-  deleteSong = (e) => {
-    console.log(e.target);
+  deleteSong = (songID) => {
+    console.log('Delete this: ',songID);
+    fetch(`${RAILS_URL}/songs/${songID}`, {
+      method: 'DELETE',
+    }).then(this.fetchSongList)
   }
 
   // SUPPORT FUNCTIONS FOR THE PROGRESS COUNTER
@@ -439,11 +473,12 @@ class App extends Component {
       let newprogress = playprogress + 1;
       let newtext = this.secondsToTime(newprogress)
       let percent = (newprogress / this.state.counterObj.total)*100
+      let remaining = (this.state.counterObj.total - newprogress)*1000
       if (newprogress === duration) {
         clearInterval(interval);
       }
       this.setState({
-        counterObj: {...this.state.counterObj, percent: percent, playprogress: newprogress, currenttext: newtext}
+        counterObj: {...this.state.counterObj, percent: percent, playprogress: newprogress, currenttext: newtext, remaining: remaining}
       })
       }
     if (this.state.currentSongDuration !== null && playprogress !== null) {
@@ -473,7 +508,7 @@ class App extends Component {
     const songDurationTime = this.secondsToTime(Math.round(songDuration/1000))
     this.setState({
       currentSongDuration: songDuration,
-      counterObj: {...this.state.counterObj, playprogress: 0, currenttext: "0:00", percent: 0, total: songDurationSec, totaltext: songDurationTime}
+      counterObj: {...this.state.counterObj, playprogress: 0, remaining: 0, currenttext: "0:00", percent: 0, total: songDurationSec, totaltext: songDurationTime}
     })
   }
 
@@ -492,6 +527,12 @@ class App extends Component {
     })
   }
 
+
+  showPlayLabel = () => {
+    if (this.state.playingSongQueue != 0) {
+      return (<div>QUEUED UP!</div>)
+    }
+  }
 
 
   render() {
@@ -523,6 +564,7 @@ class App extends Component {
               <Confirm open={this.state.shouldPrompt} content='Proceed without saving changes?' cancelButton='No'
               confirmButton="Yes" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
             {this.state.isPlaying === true ? <Button icon labelPosition='left' basic disabled><Icon name='play circle outline' size='large' color='green' />Song Is Playing</Button> : (this.state.currentsong.length > 1 ? (this.state.isRecording ? <Button icon disabled labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button> : <Button icon labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button>) : '')}</p>
+          {this.showPlayLabel()}
 
 
             {/* TITLE AND CHANGE TITLE BUTTON */}
@@ -541,6 +583,7 @@ class App extends Component {
                 isSongSaved={this.state.isSongSaved}
                 currentSongID={this.state.currentSongID}
                 saveSong={this.saveSong}
+                deleteSong={this.deleteSong}
                 />
 
               {/* SONG CONTROLS */}

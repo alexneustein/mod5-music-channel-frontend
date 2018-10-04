@@ -160,6 +160,10 @@ class PianoRoom extends Component {
     }
   }
 
+  broadcastCurrentSong = () => {
+    
+  }
+
   // BUTTON RENDERERS
 
   renderLiveBroadcastButton = () => {
