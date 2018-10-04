@@ -161,7 +161,7 @@ class PianoRoom extends Component {
   }
 
   broadcastCurrentSong = () => {
-    
+
   }
 
   // BUTTON RENDERERS
@@ -179,9 +179,9 @@ class PianoRoom extends Component {
       return (<Button basic icon labelPosition='left' disabled><Icon name='checkmark' size='large' color='green' />Broadcast Complete</Button>)
     } else {
       if ((this.props.currentsong.length === 0) || this.props.isBroadcasting) {
-        return (<Button disabled basic icon labelPosition='left' onClick={this.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
+        return (<Button disabled basic icon labelPosition='left' onClick={this.props.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
       } else {
-        return (<Button basic icon labelPosition='left' onClick={this.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
+        return (<Button basic icon labelPosition='left' onClick={this.props.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
       }
     }
   }

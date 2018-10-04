@@ -529,7 +529,7 @@ class App extends Component {
 
 
   showPlayLabel = () => {
-    if (this.state.playingSongQueue != 0) {
+    if (this.state.playingSongQueue !== 0) {
       return (<div>QUEUED UP!</div>)
     }
   }
@@ -625,6 +625,7 @@ class App extends Component {
                 midiOutput={this.state.midiOutput}
                 pageLoaded={this.state.pageLoaded}
                 getSongFromState={this.getSongFromState}
+                broadcastCurrentSong={this.broadcastCurrentSong}
                 />}
             </Grid.Column>
             <Grid.Column width={3}>
