@@ -152,6 +152,7 @@ class PianoRoom extends Component {
       for (const note of currentBuffer) {
         playBuffer = [...playBuffer, note.content]
       }
+
       console.log('now playing: ', playBuffer);
       this.setState({
         isPlayingCast: true,

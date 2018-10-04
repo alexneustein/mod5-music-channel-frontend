@@ -310,6 +310,7 @@ class App extends Component {
   }
 
 
+
   // GETTING LIST OF SONGS FROM DATABASE
 
   fetchSongList = () => {
@@ -418,6 +419,12 @@ class App extends Component {
       }).then(res => res.json())
       .then(this.fetchSongList)
     }
+  }
+
+  // DELETE SONG
+
+  deleteSong = (e) => {
+    console.log(e.target);
   }
 
   // SUPPORT FUNCTIONS FOR THE PROGRESS COUNTER
