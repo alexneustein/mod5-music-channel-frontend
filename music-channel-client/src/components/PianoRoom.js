@@ -130,8 +130,14 @@ class PianoRoom extends Component {
       };
       if (newSong.length > 0) {
         const adjustStartTimeBy = newSong[0][3] - 100;
+        console.log('unsorted: ', newSong);
         for (const note of newSong) { note[3] = note[3] - adjustStartTimeBy; }
-        const newCast = {user: newUser, date: newDate, song: newSong, title: newTitle}
+        let sortedSong = newSong.sort((a, b) => {
+            return (a[3] - b[3]);
+        })
+        console.log('sorted: ', sortedSong);
+
+        const newCast = {user: newUser, date: newDate, song: sortedSong, title: newTitle}
         this.setState(prevState => ({
           receivedCasts: [newCast, ...prevState.receivedCasts],
           receivedBuffer: []
