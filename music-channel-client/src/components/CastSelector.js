@@ -23,6 +23,11 @@ class CastSelector extends Component {
     return (parsedName)
   }
 
+  parseTitle = (song) => {
+    const parsedTitle = song.title
+    return (parsedTitle)
+  }
+
   parseDate = (song) => {
     const parsedDate = `${song.date.toDateString()}, ${song.date.toLocaleTimeString()}`
     return parsedDate
@@ -43,8 +48,8 @@ class CastSelector extends Component {
             <Menu secondary vertical>
               {castList.map((song, i) => {
                 return (
-                  <Menu.Item as='a' key={i} id={i} onClick={this.show} name={this.parseName(song)} active={activeItem === song}>
-                    {this.parseName(song)} - {this.parseDate(song)}
+                  <Menu.Item size='small' as='a' key={i} id={i} onClick={this.show} name={this.parseName(song)} active={activeItem === song}>
+                    {this.parseTitle(song)} - {this.parseName(song)} - {this.parseDate(song)}
                   </Menu.Item>
                 );
               })}
