@@ -146,7 +146,7 @@ class App extends Component {
 
   startBroadcast = () => {
     const starttime = new Date()
-    let startNote = [0,0,0,starttime]
+    let startNote = [0,0,"Cast",starttime]
     if (this.state.currentSongTitle !== null) {
       startNote = [0,0,this.state.currentSongTitle,starttime]
     }
