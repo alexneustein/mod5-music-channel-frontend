@@ -18,7 +18,7 @@ class CastSelector extends Component {
   }
 
   parseName = (song) => {
-    const parsedName = `${song.user.name_first} ${song.user.name_last}`
+    const parsedName = `${song.content[0][2]} - ${song.user.name_first} ${song.user.name_last}`
     return (parsedName)
   }
 
