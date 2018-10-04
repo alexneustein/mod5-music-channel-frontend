@@ -27,6 +27,7 @@ class App extends Component {
      currentSongDuration: null,
      currentSongAuthor: null,
      isBroadcasting: null,
+     isCastingCurrent: null,
      isBroadcasted: null,
      isSongSaved: null,
      midiStatus: null,
@@ -182,7 +183,7 @@ class App extends Component {
   broadcastCurrentSong = () => {
     let songToCast = this.getSongFromState(this.state.currentsong)
     this.setState({
-      isBroadcasting: true,
+      isCastingCurrent: true,
       shouldPrompt: false
     }, () => {
       const starttime = new Date();
@@ -193,6 +194,7 @@ class App extends Component {
     })
 
     this.setState({
+      isCastingCurrent: false,
       isBroadcasting: false,
       isBroadcasted: true
     }, () => { const endtime = new Date(); this.sendNote([1,1,1,endtime])})
@@ -390,6 +392,7 @@ class App extends Component {
       currentsongbackup: convertedSongArray,
       isSongSaved: null,
       isBroadcasted: false,
+      isCastingCurrent: false,
       currentSongAuthor: resData.user
     }, this.populateCounter)
   }
@@ -615,7 +618,7 @@ class App extends Component {
                 midiInput={this.state.midiInput}
                 isPlaying={this.state.isPlaying}
                 isBroadcasting={this.state.isBroadcasting}
-                isBroadcasted={this.isBroadcasted}
+                isBroadcasted={this.state.isBroadcasted}
                 loadSongFromCast={this.loadSongFromCast}
                 stopRecord={this.stopRecord}
                 startBroadcast={this.startBroadcast}
@@ -626,6 +629,7 @@ class App extends Component {
                 pageLoaded={this.state.pageLoaded}
                 getSongFromState={this.getSongFromState}
                 broadcastCurrentSong={this.broadcastCurrentSong}
+                isCastingCurrent={this.isCastingCurrent}
                 />}
             </Grid.Column>
             <Grid.Column width={3}>

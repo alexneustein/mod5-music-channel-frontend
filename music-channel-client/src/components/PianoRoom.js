@@ -40,7 +40,7 @@ class PianoRoom extends Component {
   promptCancel = () => this.setState({ shouldPrompt: false })
 
   onReceived = (e) => {
-    // console.log('e.note.note: ', e.note.note);
+    console.log('note: ', e.note.note);
     if (this.props.currentUser.username !== e.note.note.user.username) {
       if(e.note.note){
         this.createNote(e.note.note)
@@ -180,6 +180,8 @@ class PianoRoom extends Component {
     } else {
       if ((this.props.currentsong.length === 0) || this.props.isBroadcasting) {
         return (<Button disabled basic icon labelPosition='left' onClick={this.props.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
+      } else if (this.props.isCastingCurrent) {
+        return (<Button disabled basic icon labelPosition='left' onClick={this.props.broadcastCurrentSong}><Icon loading name='sync' size='large' color='blue' />Casting In Progress</Button>)
       } else {
         return (<Button basic icon labelPosition='left' onClick={this.props.broadcastCurrentSong}><Icon name='share' size='large' color='orange' />Cast Current Song</Button>)
       }
