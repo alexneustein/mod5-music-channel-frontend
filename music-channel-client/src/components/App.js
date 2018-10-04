@@ -146,7 +146,6 @@ class App extends Component {
 
   startBroadcast = () => {
     const starttime = new Date()
-    let songTitle = null
     let startNote = [0,0,0,starttime]
     if (this.state.currentSongTitle !== null) {
       startNote = [0,0,this.state.currentSongTitle,starttime]
@@ -186,6 +185,7 @@ class App extends Component {
   }
 
   broadcastCurrentSong = () => {
+
     let songToCast = this.getSongFromState(this.state.currentsong)
     console.log('songToCast: ', songToCast);
     this.setState({
@@ -193,9 +193,13 @@ class App extends Component {
       shouldPrompt: false
     }, () => {
       const starttime = new Date();
-      this.sendNote([0,0,0,starttime])
+      let startNote = [0,0,0,starttime]
+      if (this.state.currentSongTitle !== null) {
+        startNote = [0,0,this.state.currentSongTitle,starttime]
+      }
+      this.sendNote(startNote)
       for (const note of songToCast) {
-        this.sendNote( [ note[0], note[1], note[2] ], note[3] );
+        this.sendNote( [ note[0], note[1], note[2], note[3] ] );
       }
     })
 
