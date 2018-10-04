@@ -197,7 +197,8 @@ class App extends Component {
     }
     adjustedSong.unshift([176, 64, 0, 1]) // Adds Pedal off to start of song
     this.setState({
-      currentsong: adjustedSong
+      currentsong: adjustedSong,
+      currentsongbackup: adjustedSong
     }, this.adjustPedalBug)
   }
 
@@ -213,6 +214,7 @@ class App extends Component {
     }
     this.setState({
       currentsong: adjustedSong,
+      currentsongbackup: adjustedSong
     }, this.populateCounter)
   }
 
@@ -306,32 +308,6 @@ class App extends Component {
       }, theduration)
     }
   }
-
-
-
-
-
-
-  // setDurationState = (duration) => {
-  //   this.setState({
-  //     counterDuration: duration
-  //   })
-  // }
-
-  betterPlaySong = () => {
-    if (this.state.isPlaying === false) {
-
-    }
-  }
-
-  stopPlaying = () => {
-    // const msSinceLoad = (new Date().valueOf()) - this.state.pageLoaded + 1000
-    // const outputdevice = this.state.midiOutput
-    // outputdevice.send( [ 176, 7, 0 ], msSinceLoad+1000);
-    // outputdevice.send( [ 252 ], msSinceLoad+1000);
-    // outputdevice.send( [ 252 ], msSinceLoad+1000);
-  }
-
 
 
   // GETTING LIST OF SONGS FROM DATABASE
@@ -594,9 +570,11 @@ class App extends Component {
                 stopRecord={this.stopRecord}
                 startBroadcast={this.startBroadcast}
                 stopBroadcast={this.stopBroadcast}
-                getSongFromState={this.getSongFromState}
                 handleCast={this.handleCast}
                 isSongSaved={this.state.isSongSaved}
+                midiOutput={this.state.midiOutput}
+                pageLoaded={this.state.pageLoaded}
+                getSongFromState={this.getSongFromState}
                 />}
             </Grid.Column>
             <Grid.Column width={3}>
