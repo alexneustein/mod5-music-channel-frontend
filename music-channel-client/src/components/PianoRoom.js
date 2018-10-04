@@ -115,6 +115,10 @@ class PianoRoom extends Component {
       let newSong = []
       const newUser = receivedBuffer[0].user
       const newDate = new Date(receivedBuffer[0].content[3])
+      let newTitle = "Untitled"
+      if (receivedBuffer[0].content[2] !== 1) {
+        newTitle = receivedBuffer[0].content[2]
+      }
       for (const note of receivedBuffer) {
         if (note.content[0] === 1) {
           break;
@@ -127,7 +131,7 @@ class PianoRoom extends Component {
       if (newSong.length > 0) {
         const adjustStartTimeBy = newSong[0][3] - 100;
         for (const note of newSong) { note[3] = note[3] - adjustStartTimeBy; }
-        const newCast = {user: newUser, date: newDate, song: newSong}
+        const newCast = {user: newUser, date: newDate, song: newSong, title: newTitle}
         this.setState(prevState => ({
           receivedCasts: [newCast, ...prevState.receivedCasts],
           receivedBuffer: []
