@@ -18,7 +18,8 @@ class PianoRoom extends Component {
     receivingFrom: null,
     shouldPrompt: false,
     adjustStartTimeBy: null,
-    msSinceLoad: null
+    msSinceLoad: null,
+    playDelay: 0
   }
 
   openConnection = () => {
@@ -61,55 +62,79 @@ class PianoRoom extends Component {
     this.setState(prevState => ({
       receivedBuffer: [...prevState.receivedBuffer, note]
     }))
+    if ((note.content[0] === 1) && (this.state.isPlayingCast === false)) {
+      this.setState({ isPlayingCast: false, isBuffering: false })
+    }
     if (note.content[0] === 1) {
-      this.setState({ isReceiving: false, isPlayingCast: false, isBuffering: false, receivingFrom: null},this.saveCastToState)
+      this.setState({ isReceiving: false, receivingFrom: null},this.saveCastToState)
     }
   }
 
   bufferNote = (note) => {
-    if (note[0] !== 0) {
+    if (((this.state.isReceiving === false) && (this.state.playBuffer.length === 0)) || (note[0] === 1)) {
+      this.setState({ isPlayingCast: false, isBuffering: false, playDelay: 0})
+    } else if (note[0] !== 0) {
       // console.log('Now reading note: ', note);
       if (this.state.adjustStartTimeBy === null) {
-        const adjustStartTimeBy = note[3] - 100;
+        const adjustStartTimeBy = note[3] - 100 + this.state.playDelay;
         const msSinceLoad = (new Date().valueOf()) - this.props.pageLoaded + 1500
         this.setState({adjustStartTimeBy: adjustStartTimeBy, msSinceLoad: msSinceLoad })
-        console.log('Setting adjustment factor of ', adjustStartTimeBy);
+        // this.setState({adjustStartTimeBy: adjustStartTimeBy})
       }
-      if (this.state.playBuffer.length > 0) {
-        const bufferSize = this.state.playBuffer[this.state.playBuffer.length - 1][3] - this.state.playBuffer[0][3]
-        this.setState({ bufferSize: bufferSize})
-      }
+      // if (this.state.playBuffer.length > 0) {
+      //   const bufferSize = this.state.playBuffer[this.state.playBuffer.length - 1][3] - this.state.playBuffer[0][3]
+      //   this.setState({ bufferSize: bufferSize})
+      // }
+      note[3] = note[3] - this.state.adjustStartTimeBy + this.state.msSinceLoad
       this.setState(prevState => ({
         playBuffer: [...prevState.playBuffer, note]
       }), this.playNotesInBuffer)
     }
   }
 
+  getSongFromBuffer = (arg) => {
+    let adjustedSong = []
+    for (const note of arg) {
+      let noteCopy = [...note.content]
+      adjustedSong = [...adjustedSong, noteCopy]
+    };
+    console.log('adjustedSong: ', adjustedSong);
+    console.log('arg: ', arg);
+    return adjustedSong;
+  }
+
+
   playNotesInBuffer = () => {
-    if ((this.state.bufferSize < 1000) && (this.state.playBuffer[this.state.playBuffer.length-1][0] !== 1)) {
+    // if ((this.state.bufferSize < 1000) && (this.state.playBuffer[this.state.playBuffer.length-1][0] !== 1)) {
+    if ((this.state.playBuffer.length < 1) && (this.state.playBuffer[this.state.playBuffer.length-1][0] !== 1)) {
       this.setState({isBuffering: true })
     } else {
       this.setState({isBuffering: false })
       const outputdevice = this.props.midiOutput
-      const msSinceLoad = this.state.msSinceLoad
-      const adjustStartTimeBy = this.state.adjustStartTimeBy
-      const chunkToPlay = this.props.getSongFromState(this.state.playBuffer)
-      console.log('adjustStartTimeBy: ', adjustStartTimeBy);
-      console.log('msSinceLoad: ', msSinceLoad);
-      console.log('factor: ', msSinceLoad-adjustStartTimeBy);
+      // const msSinceLoad = (new Date().valueOf()) - this.props.pageLoaded + 1500
+      // const adjustStartTimeBy = this.state.adjustStartTimeBy
+      let chunkToPlay = this.props.getSongFromState(this.state.playBuffer)
+      // for (const note of chunkToPlay) {
+      //   note[3] = note[3] + msSinceLoad;
+      // }
       for (const note of chunkToPlay) {
-        console.log('now playing note at: ', msSinceLoad-adjustStartTimeBy+note[3]);
-        outputdevice.send( [ note[0], note[1], note[2] ], msSinceLoad-adjustStartTimeBy+note[3] );
+        console.log('now playing note at: ', note);
+        outputdevice.send( [ note[0], note[1], note[2] ], note[3] );
       }
-      this.setState({ playBuffer: [], bufferSize: 0 })
+      // this.setState({ playBuffer: [], bufferSize: 0 })
+      this.setState({ playBuffer: [] })
     }
   }
 
 
   saveCastToState = () => {
     let receivedBuffer = this.state.receivedBuffer
+    console.log('finished receivedBuffer: ',receivedBuffer);
     if ((receivedBuffer.length > 1) && (receivedBuffer[0].content[0] === 1)) {
       receivedBuffer.shift()
+    }
+    if (receivedBuffer.length === 1) {
+      this.setState({receivedBuffer: []})
     }
     if (receivedBuffer.length > 0) {
       let newSong = []
@@ -137,7 +162,7 @@ class PianoRoom extends Component {
         })
         console.log('sorted: ', sortedSong);
 
-        const newCast = {user: newUser, date: newDate, song: sortedSong, title: newTitle}
+        const newCast = {user: newUser, date: newDate, song: newSong, title: newTitle}
         this.setState(prevState => ({
           receivedCasts: [newCast, ...prevState.receivedCasts],
           receivedBuffer: []
@@ -156,22 +181,38 @@ class PianoRoom extends Component {
 
   playFromStart = () => {
     if (this.state.receivedBuffer.length > 0) {
-      let currentBuffer = this.state.receivedBuffer
-      console.log(this.state.receivedBuffer);
-      let playBuffer = []
-      for (const note of currentBuffer) {
-        playBuffer = [...playBuffer, note.content]
-      }
-
-      console.log('now playing: ', playBuffer);
-      this.setState({
-        isPlayingCast: true,
+      let pastNotes = this.getSongFromBuffer(this.state.receivedBuffer)
+      // let pastNotes = []
+      // for (const note of receivedBuffer) {
+      //   console.log('note.content: ',note.content);
+      //   pastNotes = [...pastNotes, note.content]
+      // }
+      pastNotes.shift()
+      let pastNotesDuration = pastNotes[pastNotes.length - 1][3] - pastNotes[0][3]
+      this.setState({ playDelay: pastNotesDuration})
+      const adjustStartTimeBy = pastNotes[0][3] - 100;
+      const msSinceLoad = (new Date().valueOf()) - this.props.pageLoaded + 1500
+      const outputdevice = this.props.midiOutput
+      this.setState({adjustStartTimeBy: adjustStartTimeBy, msSinceLoad: msSinceLoad },() => {
+        for (const note of pastNotes) {
+          note[3] = note[3] - this.state.adjustStartTimeBy
+        }
+        console.log('adjusted notes: ', pastNotes);
+        for (const note of pastNotes) {
+          console.log('now playing note at: ', note);
+          outputdevice.send( [ note[0], note[1], note[2] ], note[3]+this.state.msSinceLoad );
+        }
+        this.setState({
+          isPlayingCast: true,
+        })
       })
     }
   }
 
-  broadcastCurrentSong = () => {
-
+  muteCast = () => {
+    this.setState({
+      isPlayingCast: false
+    })
   }
 
   // BUTTON RENDERERS
@@ -222,7 +263,7 @@ class PianoRoom extends Component {
   renderBuffering = () => {
     if (this.state.isBuffering) {
       return (
-        <span><Icon name="sync" loading size="small" />Buffer size: {this.state.bufferSize}</span>
+        <span><Icon name="sync" loading size="small" />Buffering</span>
       )
     } else {
       return ('')
@@ -269,8 +310,9 @@ class PianoRoom extends Component {
            </Header>
          </Comment.Group>
          {this.renderReceiving()}
-         <p>{this.renderBuffering()}</p>
          <p>{this.renderPlaying()}</p>
+          <p>{this.renderBuffering()}</p>
+
 
          {/* LISTEN TO BROADCAST BUTTON */}
 
