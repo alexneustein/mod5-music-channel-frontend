@@ -220,6 +220,8 @@ class PianoRoom extends Component {
   renderLiveBroadcastButton = () => {
     if (this.props.isBroadcasting) {
       return (<Button basic icon labelPosition='left' onClick={this.props.stopBroadcast}><Icon name='microphone slash' size='large' color='green' />STOP Cast</Button>)
+    } else if (this.props.midiOutput === null) {
+      return (<Button disabled basic icon labelPosition='left' onClick={this.promptShow}><Icon name='microphone' size='large' color='red' />Cast Live Song</Button>)
     } else {
       return (<Button basic icon labelPosition='left' onClick={this.promptShow}><Icon name='microphone' size='large' color='red' />Cast Live Song</Button>)
     }

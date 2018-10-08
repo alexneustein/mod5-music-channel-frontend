@@ -560,7 +560,7 @@ class App extends Component {
             <Grid.Column width={3}>
               {/* FETCH SAVED SONGS */}
               <Header as='h3' dividing>Saved Songs</Header>
-              <p>{this.state.midiOutput ? <Button basic labelPosition='left' icon onClick={this.fetchSongList}><Icon name='folder open' size='large' color='blue' />Open Saved Songs</Button> : '' }</p>
+              <p><Button basic labelPosition='left' icon onClick={this.fetchSongList}><Icon name='folder open' size='large' color='blue' />Open Saved Songs</Button></p>
               {/* SONG LIST COMPONENT */}
               <Container>
               <SongSelector
@@ -576,7 +576,7 @@ class App extends Component {
               <p>{this.state.midiInput ? (this.state.isRecording ?  (this.state.isBroadcasting ? <Button disabled basic  onClick={this.stopRecord}><Icon name='stop circle' size='large' color='green' />STOP Record</Button>  : <Button basic  onClick={this.stopRecord}><Icon name='stop circle' size='large' color='green' />STOP Record</Button> ): <Button basic icon labelPosition='left' onClick={this.promptShow}><Icon name='circle' size='large' color='red' />RECORD NEW SONG</Button>) : ''}
               <Confirm open={this.state.shouldPrompt} content='Proceed without saving changes?' cancelButton='No'
               confirmButton="Yes" size='mini' onCancel={this.promptCancel} onConfirm={this.promptConfirm} />
-            {this.state.isPlaying === true ? <Button icon labelPosition='left' basic disabled><Icon name='play circle outline' size='large' color='green' />Song Is Playing</Button> : (this.state.currentsong.length > 1 ? (this.state.isRecording ? <Button icon disabled labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button> : <Button icon labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button>) : '')}</p>
+            {this.state.isPlaying === true ? <Button icon labelPosition='left' basic disabled><Icon name='play circle outline' size='large' color='green' />Song Is Playing</Button> : (this.state.currentsong.length > 1 ? (((this.state.isRecording)||(this.state.midiOutput === null)) ? <Button icon disabled labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button> : <Button icon labelPosition='left' basic onClick={this.playSong}><Icon name='play' size='large' color='green' />PLAY Song</Button>) : '')}</p>
           {this.showPlayLabel()}
 
 
