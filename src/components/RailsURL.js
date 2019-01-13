@@ -1,5 +1,5 @@
 export const RAILS_URL = "https://pianocast-backend.herokuapp.com"
-export const WS_URL = "wss://pianocast-backend.herokuapp.com/cable"
+export const WS_URL = "wss://pianocast-backend.herokuapp.com"
 export const RAILS_USER = "1"
 
 // export const RAILS_URL = "http://localhost:3001"
