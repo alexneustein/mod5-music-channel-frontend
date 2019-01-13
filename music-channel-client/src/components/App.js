@@ -129,6 +129,11 @@ class App extends Component {
   }
 
   stopRecord = () => {
+    if (this.state.currentSongAuthor === null) {
+      this.setState({
+        currentSongAuthor: this.state.currentUser
+      })
+    }
     if (this.state.currentsong.length > 1) {
       this.setState({
         isRecording: false,
