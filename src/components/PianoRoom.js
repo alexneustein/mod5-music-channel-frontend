@@ -41,8 +41,8 @@ class PianoRoom extends Component {
   promptCancel = () => this.setState({ shouldPrompt: false })
 
   onReceived = (e) => {
-    // console.log('note: ', e.note.note);
-    console.log('note: ', e);
+    console.log('note: ', e.note.note);
+    // console.log('note: ', e);
     if (this.props.currentUser.username !== e.note.note.user.username) {
       if(e.note.note){
         this.createNote(e.note.note)
